@@ -11,8 +11,10 @@ function init()
 }
 function main()
 {
-	let graph = translate(circle(30),100,100);
+	let circle1 = translate(circle(30),100,100);
+	let circle2 = translate(scale(circle(50),1,2), 200, 200);
 	
+	let graph = combine(circle1,circle2);
 	render(graph, new Color(255,255,255,1), new Color(0,0,0,1));
 }
 
@@ -72,4 +74,12 @@ function circle(r)
 function translate(sdf, dx, dy)
 {
 	return (x,y) => sdf(x-dx, y-dy);
+}
+function scale(sdf, kx, ky)
+{
+	return (x,y) => sdf(x/kx, y/ky);
+}
+function combine(sdf1, sdf2)
+{
+	return (x,y) => Math.min(sdf1(x,y), sdf2(x,y));
 }
