@@ -48,6 +48,12 @@ function combine(sdf1, sdf2)
     return (x, y) => Math.min(sdf1(x, y), sdf2(x, y));
 }
 
+/**
+ * 
+ * @param {SDF} sdf 
+ * @param {Number} radius 
+ * @returns {SDF}
+ */
 function expand(sdf, radius)
 {
     return (x, y) => sdf(x, y) - radius;

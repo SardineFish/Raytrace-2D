@@ -1,6 +1,6 @@
 import { Color } from "./lib.js";
 import { scale, translate, combine, rotate, expand } from "./transform.js";
-import { circle, rect } from "./shape.js";
+import { circle, rect, torus, belt, capsule } from "./shape.js";
 
 const $ = (selector) => document.querySelector(selector);
 let width, height;
@@ -16,18 +16,29 @@ function main()
 	let circle1 = translate(scale(circle(), 50), 100, 100);
 	let circle2 = translate(scale(circle(),100,200), 200, 200);
 	
-	let graph = translate(
+	let rectangle = translate(
 		rotate(
 			expand(
 				rect(40, 30),
-				1),
+				30),
 			Math.PI / 6),
 		100,
 		100);
+	let tor = translate(
+		expand(
+			torus(40, 30),
+			10),	
+		300,
+		300);
+	let graph = translate(
+		capsule(50, 10),
+		300,
+		300
+	);
 	render(graph, new Color(255, 255, 255, 1), new Color(0, 0, 0, 1));
 }
 
-function render(sdf, fColor, bgColor, threshold)
+function render(sdf, fColor, bgColor, threshold = 1)
 {
 	const canvas =$("#canvas");
 	const ctx = canvas.getContext("2d");
@@ -42,6 +53,11 @@ function render(sdf, fColor, bgColor, threshold)
 			let color = bgColor;
 			if(d<=0)
 				color = fColor;
+			else if (d < threshold)
+			{
+				var t = d / threshold;
+				color = Color.blend(bgColor, fColor, 1 - t);
+			}	
 			
 			drawPixel(imgData,x,y,width,height,color);
 		}
@@ -77,6 +93,7 @@ window.onload=()=>
 	}
 	catch(ex)
 	{
-		alert(ex.message);
+		console.error(ex.stack);
+		//alert(ex.message);
 	}
 };

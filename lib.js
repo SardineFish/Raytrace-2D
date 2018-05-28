@@ -2,9 +2,9 @@ class Color
 {
 	constructor(r, g, b, a)
 	{
-		this.red = r;
-		this.green = r;
-		this.blue = b;
+		this.red = Math.floor(r);
+		this.green = Math.floor(r);
+		this.blue = Math.floor(b);
 		this.alpha = a;
 	}
 	static add(a,b)
@@ -17,11 +17,26 @@ class Color
 			1-(1-a.alpha)*(1-b.alpha)
 		);
 	}
+	static blend(a, b, t)
+	{
+		return new Color(
+			(1 - t) * a.red + t * b.red,
+			(1 - t) * a.green + t * b.green,
+			(1 - t) * a.blue + t * b.blue,
+			1
+		);
+	}
 	toString()
 	{
 		return `rgba(${this.red}, ${this.green}, ${this.blue}, ${this.alpha})`;
 	}
 	
 }
+const max = Math.max;
+const min = Math.min;
+const sqrt = Math.sqrt;
+const abs = Math.abs;
+const length = (x, y) => sqrt(x * x + y * y);
+const clamp = (n, min, max) => n > max ? max : n < min ? min : n;
 
-export { Color };
+export { Color, max, min, sqrt, abs, length, clamp };
