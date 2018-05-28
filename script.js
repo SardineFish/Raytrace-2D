@@ -1,4 +1,6 @@
 import { Color } from "./lib.js";
+import { scale, translate, combine, rotate, expand } from "./transform.js";
+import { circle, rect } from "./shape.js";
 
 const $ = (selector) => document.querySelector(selector);
 let width, height;
@@ -11,11 +13,18 @@ function init()
 }
 function main()
 {
-	let circle1 = translate(circle(30),100,100);
-	let circle2 = translate(scale(circle(50),1,2), 200, 200);
+	let circle1 = translate(scale(circle(), 50), 100, 100);
+	let circle2 = translate(scale(circle(),100,200), 200, 200);
 	
-	let graph = combine(circle1,circle2);
-	render(graph, new Color(255,255,255,1), new Color(0,0,0,1));
+	let graph = translate(
+		rotate(
+			expand(
+				rect(40, 30),
+				1),
+			Math.PI / 6),
+		100,
+		100);
+	render(graph, new Color(255, 255, 255, 1), new Color(0, 0, 0, 1));
 }
 
 function render(sdf, fColor, bgColor, threshold)
@@ -31,7 +40,7 @@ function render(sdf, fColor, bgColor, threshold)
 		{
 			let d = sdf(x, y);
 			let color = bgColor;
-			if(d<0)
+			if(d<=0)
 				color = fColor;
 			
 			drawPixel(imgData,x,y,width,height,color);
@@ -53,33 +62,21 @@ function drawPixel(imgData, x, y, width, height, color)
 	imgData.data[idx + 2] = color.blue;
 	imgData.data[idx + 3] = Math.floor(color.alpha * 255);
 }
-
+function update(delay)
+{
+	requestAnimationFrame(update);
+	main(delay / 1000);
+}	
 window.onload=()=>
 {
 	try
 	{
 		init();
 		main();
+		//requestAnimationFrame(update);
 	}
 	catch(ex)
 	{
 		alert(ex.message);
 	}
 };
-
-function circle(r)
-{
-	return (x,y) => Math.sqrt(x*x +y*y)-r;
-}
-function translate(sdf, dx, dy)
-{
-	return (x,y) => sdf(x-dx, y-dy);
-}
-function scale(sdf, kx, ky)
-{
-	return (x,y) => sdf(x/kx, y/ky);
-}
-function combine(sdf1, sdf2)
-{
-	return (x,y) => Math.min(sdf1(x,y), sdf2(x,y));
-}
