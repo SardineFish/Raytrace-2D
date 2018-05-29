@@ -17,6 +17,12 @@ class Color
 			1-(1-a.alpha)*(1-b.alpha)
 		);
 	}
+	/**
+	 * 
+	 * @param {Color} a 
+	 * @param {Color} b 
+	 * @param {Number} t 
+	 */
 	static blend(a, b, t)
 	{
 		return new Color(
@@ -38,5 +44,6 @@ const sqrt = Math.sqrt;
 const abs = Math.abs;
 const length = (x, y) => sqrt(x * x + y * y);
 const clamp = (n, min, max) => n > max ? max : n < min ? min : n;
+const smin = (a, b, k) => -Math.log(Math.exp(-k * a) + Math.exp(-k * b)) / k;
 
-export { Color, max, min, sqrt, abs, length, clamp };
+export { Color, max, min, sqrt, abs, length, clamp, smin };

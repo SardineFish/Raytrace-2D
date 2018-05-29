@@ -1,3 +1,5 @@
+import { max, smin } from "./lib.js";
+
 /**
  * 
  * @param {SDF} sdf 
@@ -42,10 +44,31 @@ function rotate(sdf, rad)
  * @param {SDF} sdf2 
  * @returns {SDF}
  */
-function combine(sdf1, sdf2)
+function union(sdf1, sdf2)
 {
-    
-    return (x, y) => Math.min(sdf1(x, y), sdf2(x, y));
+    return (x, y) => min(sdf1(x, y), sdf2(x, y));
+}
+
+/**
+ * 
+ * @param {SDF} sdf1 
+ * @param {SDF} sdf2 
+ * @returns {SDF}
+ */
+function subtract(sdf1, sdf2)
+{
+    return (x, y) => max(sdf1(x, y), -sdf2(x, y));
+}
+
+/**
+ * 
+ * @param {SDF} sdf1 
+ * @param {SDF} sdf2 
+ * @returns {SDF}
+ */
+function intersect(sdf1, sdf2)
+{
+    return (x, y) => max(sdf1(x, y), sdf2(x, y));
 }
 
 /**
@@ -59,7 +82,34 @@ function expand(sdf, radius)
     return (x, y) => sdf(x, y) - radius;
 }
 
-export { translate, combine, scale, rotate, expand };
+function repeat(sdf, dx, dy = dx, ox = 0, oy = 0)
+{
+    return (x, y) => sdf(x % dx + ox, y % dy + oy);
+}
+
+/**
+ * 
+ * @param {SDF} sdf1 
+ * @param {SDF} sdf2 
+ * @returns {SDF}
+ */
+function displace(sdf1, sdf2)
+{
+    return (x, y) => sdf1(x, y) + sdf2(x, y);
+}
+
+/**
+ * 
+ * @param {SDF} sdf1 
+ * @param {SDF} sdf2 
+ * @param {Number} k 
+ * @returns {SDF}
+ */
+function blend(sdf1, sdf2,k)
+{
+    return (x, y) => smin(sdf1(x, y), sdf2(x, y), k);
+}
+export { translate, union, scale, rotate, expand,subtract,repeat,displace,blend };
 
 /**
  * @typedef {function (Number, Number) => Number} SDF

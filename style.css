@@ -6,3 +6,18 @@ body{
 #canvas{
 	background: rgba(0,0,0,0.1);
 }
+#hover{
+	position: fixed;
+	z-index: 100;
+	color: #AAA;
+	user-select: none;
+}
+#mouse-pos::before{
+	content: "Mouse Pos = ";
+}
+#sdf-value::before{
+	content: "SDF(x, y) = ";
+}
+#fps::before{
+	content: "fps = ";
+}

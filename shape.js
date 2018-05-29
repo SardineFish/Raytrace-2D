@@ -1,10 +1,20 @@
 import { max, min, sqrt, abs, length, clamp } from "./lib.js";
 
-
+/**
+ * 
+ * @param {Number} r - radius
+ * @returns {SDF}
+ */
 function circle(r)
 {
-    return (x, y) => Math.sqrt(x * x + y * y) - 1;
+    return (x, y) => Math.sqrt(x * x + y * y) - r;
 }
+/**
+ * 
+ * @param {Number} w - Width of rectangle
+ * @param {Number} h - Height of rectangle
+ * @returns {SDF}
+ */
 function rect(w, h)
 {
     return (x, y) =>
@@ -14,6 +24,13 @@ function rect(w, h)
         return min(max(dx, dy), 0) + length(max(dx, 0), max(dy, 0));
     };    
 }
+
+/**
+ * 
+ * @param {Number} rOuter - Outer radius
+ * @param {Number} rInner - Inner radius
+ * @returns {SDF}
+ */
 function torus(rOuter, rInner)
 {
     const mid = (rOuter + rInner) / 2;
@@ -24,11 +41,23 @@ function torus(rOuter, rInner)
         return abs(l - mid) - wide;
     }
 }
+
+/**
+ * 
+ * @param {Number} wide - Width of the belt
+ * @returns {SDF}
+ */
 function belt(wide)
 {
     return (x, y) => y - wide / 2;
 }
 
+/**
+ * 
+ * @param {Number} l - Length between two center of semi-circle
+ * @param {Number} radius - The radius of the semi-circle at end
+ * @returns {SDF}
+ */
 function capsule(l, radius)
 {
     const half = l / 2;
@@ -40,3 +69,7 @@ function capsule(l, radius)
 }
 
 export { circle, rect, torus, belt, capsule };
+
+/**
+ * @typedef {function (Number, Number) => Number} SDF
+ */
