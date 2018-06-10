@@ -57,3 +57,4 @@ const scale = Vector2.scale;
 const dot = Vector2.dot;
 const cross = Vector2.cross;
 export { Color, max, min, sqrt, abs, length, clamp, smin, vec2, Vector2, plus, minus, scale, dot, cross, };
+//# sourceMappingURL=lib.js.map

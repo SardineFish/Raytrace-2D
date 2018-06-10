@@ -1,44 +1,15 @@
 import { Color } from "./lib.js";
 import { scale, translate, union, rotate, expand, subtract, repeat, displace, blend } from "./transform.js";
 import { circle, rect, torus, belt, capsule } from "./shape.js";
-
+/*type SDFResult = [number, Color];
+type SDF = (x: number, y: number) => SDFResult;*/
 const $ = (selector) => document.querySelector(selector);
-let renderingSDF = () => Number.NaN;
+let renderingSDF = (x, y) => NaN;
 let width, height;
 function main(t)
 {
-	let circle1 = translate(scale(circle(), 50), 100, 100);
-	let circle2 = translate(scale(circle(),100,200), 200, 200);
+	let c = circle(50, new Color(255, 255, 252, 1.0));
 	
-	let rectangle = translate(
-		rotate(
-			expand(
-				rect(40, 30),
-				30),
-			Math.PI / 6),
-		130,
-		130);
-	let tor = translate(
-		expand(
-			torus(80, 70),
-			10),	
-		0,
-		0);
-	let cps = translate(
-		capsule(300, 10),
-		0,
-		0
-	);
-	let rpt = repeat(
-		circle(5),
-		40,
-		40,
-		-20,
-		-20
-	);
-	let bld = blend(cps, tor, 1 / t);
-	let graph = blend(rectangle, bld, 1 / t);
-	render(graph, new Color(255, 255, 255, 1), new Color(0, 0, 0, 1));
 }
 
 /**
