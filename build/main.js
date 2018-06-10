@@ -166,6 +166,27 @@ define("lib", ["require", "exports"], function (require, exports) {
         return u.x * v.y - u.y * v.x;
     }
     exports.cross = cross;
+    class Range extends Vector2 {
+        get from() {
+            return this[0];
+        }
+        set from(value) {
+            this[0] = value;
+        }
+        get to() {
+            return this[1];
+        }
+        set to(value) {
+            this[1] = value;
+        }
+        inRange(n) {
+            return this.from < n && n < this.to;
+        }
+        inRangeInclude(n) {
+            return this.from <= n && n <= this.to;
+        }
+    }
+    exports.Range = Range;
 });
 define("transform", ["require", "exports", "lib", "lib"], function (require, exports, lib_1, lib_2) {
     "use strict";
@@ -469,6 +490,8 @@ define("script", ["require", "exports", "lib", "shape"], function (require, expo
 define("trace", ["require", "exports", "lib"], function (require, exports, lib_js_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    let BoundX = new lib_js_3.Range(-500, 500);
+    let BoundY = new lib_js_3.Range(-500, 500);
     function trace(sdf, p, dir, precision) {
         let distance = 0;
         let color;
@@ -476,8 +499,25 @@ define("trace", ["require", "exports", "lib"], function (require, exports, lib_j
         do {
             p = lib_js_3.plus(p, lib_js_3.scale(dir, distance));
             [distance, color] = sdf(p.x, p.y);
+            if (!BoundX.inRange(p.x) || !BoundY.inRange(p.y))
+                return lib_js_3.vec4(0, 0, 0, 1);
         } while (distance > precision);
         return lib_js_3.vec4(color.red / 255, color.green / 255, color.blue / 255, color.alpha);
     }
+    exports.trace = trace;
+    function sample(sdf, p, precision, n) {
+        let color = lib_js_3.vec4(0, 0, 0, 1);
+        for (let i = 0; i < n; i++) {
+            let rad = Math.PI * 2 * Math.random();
+            color = lib_js_3.plus(trace(sdf, p, lib_js_3.vec2(Math.cos(rad), Math.sin(rad)), precision), color);
+        }
+        return color;
+    }
+    exports.sample = sample;
+    function setBound(boundX, boundY) {
+        BoundX = boundX;
+        BoundY = boundY;
+    }
+    exports.setBound = setBound;
 });
 //# sourceMappingURL=main.js.map

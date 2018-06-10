@@ -204,8 +204,36 @@ function cross(u: Vector2, v: Vector2): number
 {
     return u.x * v.y - u.y * v.x;
 }
+class Range extends Vector2
+{
+    get from()
+    {
+        return this[0];
+    }
+    set from(value)
+    {
+        this[0] = value;
+    }
 
+    get to()
+    {
+        return this[1];
+    }
+    set to(value)
+    {
+        this[1] = value;
+    }
 
+    inRange(n: number): boolean
+    {
+        return this.from < n && n < this.to;
+    }
+
+    inRangeInclude(n: number): boolean
+    {
+        return this.from <= n && n <= this.to;
+    }
+}
 export
 {
     Color,
@@ -224,5 +252,6 @@ export
     dot,
     cross,
     Vector4,
-    vec4
+    vec4,
+    Range
 };
