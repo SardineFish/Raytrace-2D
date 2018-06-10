@@ -80,7 +80,7 @@ class Vector2 extends Array<number>
     }
     get normalized()
     {
-        let l = Math.hypot.call(this, this);
+        let l = Math.hypot(this.x, this.y);
         return new Vector2(this.x / l, this.y / l);
     }
     get magnitude()
@@ -140,6 +140,11 @@ class Vector4 extends Array<number>
     set w(value)
     {
         this[3] = value;
+    }
+    
+    static scale(u: Vector4, k: number):Vector4
+    {
+        return new Vector4(u.map(n => n * k));
     }
 }
 

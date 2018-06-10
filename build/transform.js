@@ -1,5 +1,5 @@
-import { smin } from "./lib";
-import { Color } from "./lib";
+import { smin } from "./lib.js";
+import { Color } from "./lib.js";
 /**
  *
  * @param {SDF} sdf
@@ -124,5 +124,8 @@ function blend(sdf1, sdf2, k) {
     const color = new Color(smin(color1.red, color2.red, k), smin(color1.green, color2.green, k), smin(color1.blue, color2.blue, k), smin(color1.alpha, color2.alpha, k));
     return (x, y) => [smin(sdf1(x, y)["0"], sdf2(x, y)["0"], k), color];
 }
-export { translate, union, scale, rotate, expand, subtract, displace, blend };
+function colorSDF(sdf, color) {
+    return (x, y) => [sdf(x, y)["0"], color];
+}
+export { translate, union, scale, rotate, expand, subtract, displace, blend, colorSDF };
 //# sourceMappingURL=transform.js.map

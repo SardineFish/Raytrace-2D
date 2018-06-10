@@ -6,6 +6,15 @@ type SDF = (x: number, y: number) => SDFResult;
 let BoundX = new Range(-500, 500);
 let BoundY = new Range(-500, 500);
 
+
+function setBound(boundX: Range, boundY: Range)
+{
+    BoundX = boundX;
+    BoundY = boundY;
+}
+
+
+
 function trace(sdf: SDF, p: Vector2, dir: Vector2, precision: number): Vector4
 {
     let distance: number = 0;
@@ -23,10 +32,10 @@ function trace(sdf: SDF, p: Vector2, dir: Vector2, precision: number): Vector4
     return vec4(color.red / 255, color.green / 255, color.blue / 255, color.alpha);
 }
 
-function sample(sdf: SDF, p: Vector2, precision: number, n: number): Vector4
+function uniformSample(sdf: SDF, p: Vector2, precision: number, subdiv: number): Vector4
 {
     let color: Vector4 = vec4(0, 0, 0, 1);
-    for (let i = 0; i < n; i++)
+    for (let i = 0; i < subdiv; i++)
     {
         let rad = Math.PI * 2 * Math.random();
         color = <Vector4>plus(trace(sdf, p, vec2(Math.cos(rad), Math.sin(rad)), precision), color);
@@ -34,10 +43,26 @@ function sample(sdf: SDF, p: Vector2, precision: number, n: number): Vector4
     return color;
 }
 
-function setBound(boundX: Range, boundY: Range)
+function stratifiedSample(sdf: SDF, p: Vector2, precision: number, subdiv: number): Vector4
 {
-    BoundX = boundX;
-    BoundY = boundY;
+    let color: Vector4 = vec4(0, 0, 0, 1);
+    for (let i = 0; i < subdiv; i++)
+    {
+        let rad = Math.PI * 2 * i / subdiv;
+        color = <Vector4>plus(trace(sdf, p, vec2(Math.cos(rad), Math.sin(rad)), precision), color);
+    }
+    return color;
 }
 
-export { trace, setBound, sample };
+function jitteredSample(sdf: SDF, p: Vector2, precision: number, subdiv: number): Vector4
+{
+    let color: Vector4 = vec4(0, 0, 0, 1);
+    for (let i = 0; i < subdiv; i++)
+    {
+        let rad = Math.PI * 2 * (i + Math.random()) / subdiv;
+        color = <Vector4>plus(trace(sdf, p, vec2(Math.cos(rad), Math.sin(rad)), precision), color);
+    }
+    return color;
+}
+
+export { trace, setBound, uniformSample,stratifiedSample, jitteredSample };

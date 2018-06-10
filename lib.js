@@ -52,7 +52,7 @@ class Vector2 extends Array {
         this[1] = value;
     }
     get normalized() {
-        let l = Math.hypot.call(this, this);
+        let l = Math.hypot(this.x, this.y);
         return new Vector2(this.x / l, this.y / l);
     }
     get magnitude() {
@@ -98,6 +98,9 @@ class Vector4 extends Array {
     }
     set w(value) {
         this[3] = value;
+    }
+    static scale(u, k) {
+        return new Vector4(u.map(n => n * k));
     }
 }
 function vec2(x, y) {
