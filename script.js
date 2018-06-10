@@ -10,11 +10,15 @@ let width, height;
 function main(t)
 {
 	let c = circle(50, new Color(255, 255, 252, 1.0));
-	let c2 = translate(circle(50, new Color(255, 0, 0, 1.0)), 50, 0);
-	let graph = union(c, c2);
+	let c2 = translate(circle(50, new Color(255, 255, 255, 1.0)), 50, 0);
+	let rec = translate(rect(50, 50, new Color(128, 0, 0, 1.0)), 100, 100);
+	let graph = union(
+		subtract(c, c2),
+		rec);
+	renderingSDF = graph;
 	visibleRender((x, y) =>
 	{
-		let color = uniformSample(graph, vec2(x, y), 0.1, 64);
+		let color = jitteredSample(graph, vec2(x, y), 0.1, 64);
 		return mapColor(color, 1 / 64);
 	});
 }
@@ -143,7 +147,7 @@ function init() {
 		let x = Math.floor(e.clientX - width / 2);
 		let y = Math.floor(-(e.clientY - height / 2));
 		$("#mouse-pos").innerText = `(${x}, ${y})`;
-		$("#sdf-value").innerText = renderingSDF(x, y);
+		$("#sdf-value").innerText = renderingSDF(x, y)["0"];
 	}
 	setBound(new Range(-width / 2, width / 2), new Range(-height / 2, height / 2));
 }
