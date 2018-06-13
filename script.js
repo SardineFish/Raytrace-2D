@@ -22,6 +22,10 @@ function main(t)
 				subtract(c, c2),
 				rec),
 			c3);
+	let g = union(
+		c,
+		translate(circle(50, new Material(new Color(255, 0, 0, 1.0))), 50, 0)
+	);
 	renderingSDF = graph;
 	visibleRender((x, y) =>
 	{
@@ -52,6 +56,7 @@ function customRender(callback) {
 }
 
 function visibleRender(callback) {
+	console.log(new Date());
 	const canvas = $("#canvas");
 	const ctx = canvas.getContext("2d");
 	ctx.clearRect(0, 0, width, height);
@@ -68,6 +73,10 @@ function visibleRender(callback) {
 		y++;
 		if (y < height / 2)
 			requestAnimationFrame(update);
+		else
+		{
+			console.log(new Date());
+		}
 	}
 	update();
 }
