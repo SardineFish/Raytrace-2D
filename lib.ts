@@ -1,3 +1,6 @@
+type SDFResult = [number, Material];
+type SDF = (x: number, y: number) => SDFResult;
+
 class Color
 {
     red: number = 255;
@@ -239,6 +242,31 @@ class Range extends Vector2
         return this.from <= n && n <= this.to;
     }
 }
+
+class Material
+{
+    diffuseColor: Color = new Color(0, 0, 0, 1.0);
+    reflectivity: number = 0;
+    refractivity: number = 0;
+    emission: Color = new Color(0, 0, 0, 1.0);
+    constructor(emission: Color = new Color(0, 0, 0, 1.0))
+    {
+        this.emission = emission;
+    }
+}
+
+function mapColor(v:Vector4, k:number):Color
+{
+    return new Color(v.x * k * 255, v.y * k * 255, v.z * k * 255, 1.0);
+}
+
+function gradient(sdf: SDF,x:number,y:number, delta: number): [number, number]
+{
+    return [
+        (sdf(x + delta, y)["0"] - sdf(x - delta, y)["0"]) / (2 * delta),
+        (sdf(x, y + delta)["0"] - sdf(x, y - delta)["0"]) / (2 * delta)
+    ];
+}
 export
 {
     Color,
@@ -258,5 +286,8 @@ export
     cross,
     Vector4,
     vec4,
-    Range
+    Range,
+    Material,
+    mapColor,
+    gradient
 };

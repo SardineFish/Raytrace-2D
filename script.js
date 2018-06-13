@@ -1,7 +1,7 @@
-import { Color, Range, vec2, Vector4 } from "./lib.js";
-import { scale, translate, union, rotate, expand, subtract, repeat, displace, blend } from "./transform.js";
+import { Color, Range, vec2, Vector4, Material, mapColor, gradient } from "./lib.js";
+import { scale, translate, union, rotate, expand, subtract, repeat, displace, blend, wrapSDF, intersect } from "./transform.js";
 import { circle, rect, torus, belt, capsule } from "./shape.js";
-import { setBound, uniformSample, stratifiedSample, jitteredSample } from "./trace.js";
+import { setBound, uniformSample, stratifiedSample, jitteredSample, sample } from "./trace.js";
 /*type SDFResult = [number, Color];
 type SDF = (x: number, y: number) => SDFResult;*/
 const $ = (selector) => document.querySelector(selector);
@@ -9,17 +9,27 @@ let renderingSDF = (x, y) => NaN;
 let width, height;
 function main(t)
 {
-	let c = circle(50, new Color(255, 255, 252, 1.0));
-	let c2 = translate(circle(50, new Color(255, 255, 255, 1.0)), 50, 0);
-	let rec = translate(rect(50, 50, new Color(128, 0, 0, 1.0)), 100, 100);
-	let graph = union(
-		subtract(c, c2),
-		rec);
+	
+	const SubDivide = 64;
+
+	let c = circle(50, new Material( new Color(255, 255, 252, 1.0)));
+	let c2 = translate(circle(50, new Material(new Color(0, 255, 255, 1.0))), 50, 0);
+	let c3 = translate(circle(10, new Material(new Color(255, 255, 0, 1))), 70, 0);
+	let rec = translate(rect(50, 50, new Material(new Color(255, 0, 0, 1.0))), -0, -200);
+	let graph =
+		union(
+			union(
+				subtract(c, c2),
+				rec),
+			c3);
 	renderingSDF = graph;
 	visibleRender((x, y) =>
 	{
-		let color = jitteredSample(graph, vec2(x, y), 0.1, 64);
-		return mapColor(color, 1 / 64);
+		/*let [dx, dy] = gradient(graph,x,y,0.1);
+		return new Color(127 + dx * 128, 127 + dy * 128, 0, 1);*/
+		/*let color = jitteredSample(graph, vec2(x, y), 0.1, SubDivide);
+		return mapColor(color, 1 / SubDivide);*/
+		return sample(graph, vec2(x, y), jitteredSample, 0.1, SubDivide);
 	});
 }
 /**
@@ -107,16 +117,6 @@ function drawPixel(imgData, x, y, width, height, color) {
 	imgData.data[idx + 1] = color.green;
 	imgData.data[idx + 2] = color.blue;
 	imgData.data[idx + 3] = Math.floor(color.alpha * 255);
-}
-
-/**
- * 
- * @param {Vector4} v 
- * @param {number} k
- * @returns {Color} 
- */
-function mapColor(v, k) {
-	return new Color(v.x * k * 255, v.y * k * 255, v.z * k * 255, 1.0);
 }
 
 export {

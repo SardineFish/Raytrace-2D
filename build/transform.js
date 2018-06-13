@@ -1,5 +1,5 @@
-import { smin } from "./lib.js";
-import { Color } from "./lib.js";
+import { smin, Color } from "./lib.js";
+import { Material } from "./lib.js";
 /**
  *
  * @param {SDF} sdf
@@ -63,7 +63,7 @@ function subtract(sdf1, sdf2) {
         if (d1 > d2)
             return [d1, c1];
         else
-            return [d2, c2];
+            return [d2, c1];
     };
 }
 /**
@@ -106,10 +106,8 @@ function repeat(sdf:SDF, dx, dy = dx, ox = 0, oy = 0)
  * @returns {SDF}
  */
 function displace(sdf1, sdf2) {
-    const color1 = sdf1(0, 0)["1"];
-    const color2 = sdf2(0, 0)["1"];
-    const color = Color.add(color1, color2);
-    return (x, y) => [sdf1(x, y)["0"] + sdf2(x, y)["0"], color];
+    const m = sdf1(0, 0)["1"];
+    return (x, y) => [sdf1(x, y)["0"] + sdf2(x, y)["0"], m];
 }
 /**
  *
@@ -119,13 +117,19 @@ function displace(sdf1, sdf2) {
  * @returns {SDF}
  */
 function blend(sdf1, sdf2, k) {
-    const color1 = sdf1(0, 0)["1"];
-    const color2 = sdf2(0, 0)["1"];
-    const color = new Color(smin(color1.red, color2.red, k), smin(color1.green, color2.green, k), smin(color1.blue, color2.blue, k), smin(color1.alpha, color2.alpha, k));
-    return (x, y) => [smin(sdf1(x, y)["0"], sdf2(x, y)["0"], k), color];
+    const material1 = sdf1(0, 0)["1"];
+    const material2 = sdf2(0, 0)["1"];
+    const material = new Material();
+    material.emission = new Color(smin(material1.emission.red, material2.emission.red, k), smin(material1.emission.green, material2.emission.green, k), smin(material1.emission.blue, material2.emission.blue, k), smin(material1.emission.alpha, material2.emission.alpha, k));
+    return (x, y) => [smin(sdf1(x, y)["0"], sdf2(x, y)["0"], k), material];
 }
-function colorSDF(sdf, color) {
-    return (x, y) => [sdf(x, y)["0"], color];
+/**
+ *
+ * @param sdf - The SDF function
+ * @param material - The material to add to this object
+ */
+function wrapSDF(sdf, material) {
+    return (x, y) => [sdf(x, y)["0"], material];
 }
-export { translate, union, scale, rotate, expand, subtract, displace, blend, colorSDF };
+export { translate, union, scale, rotate, expand, subtract, displace, blend, wrapSDF, intersect };
 //# sourceMappingURL=transform.js.map

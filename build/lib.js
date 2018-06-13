@@ -169,5 +169,23 @@ class Range extends Vector2 {
         return this.from <= n && n <= this.to;
     }
 }
-export { Color, max, min, sqrt, abs, length, clamp, smin, vec2, Vector2, plus, minus, scale, dot, cross, Vector4, vec4, Range };
+class Material {
+    constructor(emission = new Color(0, 0, 0, 1.0)) {
+        this.diffuseColor = new Color(0, 0, 0, 1.0);
+        this.reflectivity = 0;
+        this.refractivity = 0;
+        this.emission = new Color(0, 0, 0, 1.0);
+        this.emission = emission;
+    }
+}
+function mapColor(v, k) {
+    return new Color(v.x * k * 255, v.y * k * 255, v.z * k * 255, 1.0);
+}
+function gradient(sdf, x, y, delta) {
+    return [
+        (sdf(x + delta, y)["0"] - sdf(x - delta, y)["0"]) / (2 * delta),
+        (sdf(x, y + delta)["0"] - sdf(x, y - delta)["0"]) / (2 * delta)
+    ];
+}
+export { Color, max, min, sqrt, abs, length, clamp, smin, vec2, Vector2, plus, minus, scale, dot, cross, Vector4, vec4, Range, Material, mapColor, gradient };
 //# sourceMappingURL=lib.js.map
