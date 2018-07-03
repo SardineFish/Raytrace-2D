@@ -1,4 +1,4 @@
-import { Color, Vector2, Vector4, plus, scale, vec4, vec2, Range, Material, mapColor, gradient, minus } from "./lib.js";
+import { Color, Vector2, Vector4, plus, scale, vec4, vec2, Range, Material, mapColor, gradient, minus } from "./lib";
 
 type SDFResult = [number, Material];
 type SDF = (x: number, y: number) => SDFResult;

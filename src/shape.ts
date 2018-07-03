@@ -1,4 +1,4 @@
-import { Material, sqrt, min, max, length, abs, clamp } from "./lib.js";
+import { Material, sqrt, min, max, length, abs, clamp } from "./lib";
 
 type SDFResult = [number, Material];
 type SDF = (x: number, y: number) => SDFResult;

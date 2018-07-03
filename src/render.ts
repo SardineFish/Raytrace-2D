@@ -1,5 +1,5 @@
-import { jitteredSample, stratifiedSample, uniformSample } from "./trace.js";
-import { Color, Material, Range } from "./lib.js";
+import { jitteredSample, stratifiedSample, uniformSample } from "./trace";
+import { Color, Material, Range } from "./lib";
 
 type SDFResult = [number, Material];
 type SDF = (x: number, y: number) => SDFResult;

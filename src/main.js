@@ -1,13 +1,13 @@
-import { Color, Range, vec2, Vector4, Material, mapColor, gradient } from "./lib.js";
-import { scale, translate, union, rotate, expand, subtract, repeat, displace, blend, wrapSDF, intersect } from "./transform.js";
-import { circle, rect, torus, belt, capsule } from "./shape.js";
-import { setBound, uniformSample, stratifiedSample, jitteredSample, sample } from "./trace.js";
+import { Color, Range, vec2, Vector4, Material, mapColor, gradient } from "./lib";
+import { scale, translate, union, rotate, expand, subtract, repeat, displace, blend, wrapSDF, intersect } from "./transform";
+import { circle, rect, torus, belt, capsule } from "./shape";
+import { setBound, uniformSample, stratifiedSample, jitteredSample, sample } from "./trace";
 /*type SDFResult = [number, Color];
 type SDF = (x: number, y: number) => SDFResult;*/
 const $ = (selector) => document.querySelector(selector);
 let renderingSDF = (x, y) => NaN;
 let width, height;
-window.wkr = new Worker("renderWorker.js");
+window.wkr = new Worker("./build/renderWorker.js");
 wkr.onmessage = (e) => {
 	console.log(e);
 };

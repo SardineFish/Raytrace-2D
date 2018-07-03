@@ -1,6 +1,6 @@
-import { max, smin, Color } from "./lib.js";
-import { Material } from "./lib.js";
-import { min } from "./lib.js";
+import { max, smin, Color } from "./lib";
+import { Material } from "./lib";
+import { min } from "./lib";
 type SDFResult = [number, Material];
 type SDF = (x: number, y: number) => SDFResult;
 /**
