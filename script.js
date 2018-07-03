@@ -7,9 +7,14 @@ type SDF = (x: number, y: number) => SDFResult;*/
 const $ = (selector) => document.querySelector(selector);
 let renderingSDF = (x, y) => NaN;
 let width, height;
+window.wkr = new Worker("renderWorker.js");
+wkr.onmessage = (e) => {
+	console.log(e);
+};
 function main(t)
 {
-	
+	wkr.postMessage("Hello World!");
+	return;
 	const SubDivide = 64;
 
 	let c = circle(50, new Material( new Color(255, 255, 252, 1.0)));
