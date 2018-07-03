@@ -2,6 +2,7 @@ import { Color, Range, vec2, Vector4, Material, mapColor, gradient } from "./lib
 import { scale, translate, union, rotate, expand, subtract, repeat, displace, blend, wrapSDF, intersect } from "./transform";
 import { circle, rect, torus, belt, capsule } from "./shape";
 import { setBound, uniformSample, stratifiedSample, jitteredSample, sample } from "./trace";
+import { RenderOption, renderSDF, renderRaytrace } from "./render";
 /*type SDFResult = [number, Color];
 type SDF = (x: number, y: number) => SDFResult;*/
 const $ = (selector) => document.querySelector(selector);
@@ -13,8 +14,6 @@ wkr.onmessage = (e) => {
 };
 function main(t)
 {
-	wkr.postMessage("Hello World!");
-	return;
 	const SubDivide = 64;
 
 	let c = circle(50, new Material( new Color(255, 255, 252, 1.0)));
@@ -32,6 +31,11 @@ function main(t)
 		translate(circle(50, new Material(new Color(255, 0, 0, 1.0))), 50, 0)
 	);
 	renderingSDF = graph;
+	let renderOption = new RenderOption();
+	renderOption.environmentOptions.backgroundColor = new Color(255, 128, 180, 1.0);
+	renderSDF(graph, renderOption, $("#canvas"));
+	renderRaytrace(graph, renderOption, $("#canvas"));
+	return;
 	visibleRender((x, y) =>
 	{
 		/*let [dx, dy] = gradient(graph,x,y,0.1);

@@ -280,6 +280,10 @@ class Range extends Vector2 {
     set to(value) {
         this[1] = value;
     }
+    get size() {
+        console.log(this[1] - this[0]);
+        return this[1] - this[0];
+    }
     inRange(n) {
         return this.from < n && n < this.to;
     }
@@ -329,6 +333,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _transform__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./transform */ "./src/transform.ts");
 /* harmony import */ var _shape__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./shape */ "./src/shape.ts");
 /* harmony import */ var _trace__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./trace */ "./src/trace.ts");
+/* harmony import */ var _render__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./render */ "./src/render.ts");
+
 
 
 
@@ -344,8 +350,6 @@ wkr.onmessage = (e) => {
 };
 function main(t)
 {
-	wkr.postMessage("Hello World!");
-	return;
 	const SubDivide = 64;
 
 	let c = Object(_shape__WEBPACK_IMPORTED_MODULE_2__["circle"])(50, new _lib__WEBPACK_IMPORTED_MODULE_0__["Material"]( new _lib__WEBPACK_IMPORTED_MODULE_0__["Color"](255, 255, 252, 1.0)));
@@ -363,6 +367,11 @@ function main(t)
 		Object(_transform__WEBPACK_IMPORTED_MODULE_1__["translate"])(Object(_shape__WEBPACK_IMPORTED_MODULE_2__["circle"])(50, new _lib__WEBPACK_IMPORTED_MODULE_0__["Material"](new _lib__WEBPACK_IMPORTED_MODULE_0__["Color"](255, 0, 0, 1.0))), 50, 0)
 	);
 	renderingSDF = graph;
+	let renderOption = new _render__WEBPACK_IMPORTED_MODULE_4__["RenderOption"]();
+	renderOption.environmentOptions.backgroundColor = new _lib__WEBPACK_IMPORTED_MODULE_0__["Color"](255, 128, 180, 1.0);
+	Object(_render__WEBPACK_IMPORTED_MODULE_4__["renderSDF"])(graph, renderOption, $("#canvas"));
+	Object(_render__WEBPACK_IMPORTED_MODULE_4__["renderRaytrace"])(graph, renderOption, $("#canvas"));
+	return;
 	visibleRender((x, y) =>
 	{
 		/*let [dx, dy] = gradient(graph,x,y,0.1);
@@ -507,6 +516,137 @@ window.onload = () => {
  */
 
 	
+
+/***/ }),
+
+/***/ "./src/render.ts":
+/*!***********************!*\
+  !*** ./src/render.ts ***!
+  \***********************/
+/*! exports provided: RenderOption, SampleFunctions, EnvironmentOptions, RaytraceOptions, RenderCmd, renderRaytrace, renderSDF, RenderState */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RenderOption", function() { return RenderOption; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SampleFunctions", function() { return SampleFunctions; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EnvironmentOptions", function() { return EnvironmentOptions; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RaytraceOptions", function() { return RaytraceOptions; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RenderCmd", function() { return RenderCmd; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderRaytrace", function() { return renderRaytrace; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderSDF", function() { return renderSDF; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RenderState", function() { return RenderState; });
+/* harmony import */ var _lib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./lib */ "./src/lib.ts");
+
+class RenderOption {
+    constructor() {
+        this.width = 600;
+        this.height = 480;
+        this.environmentOptions = new EnvironmentOptions();
+        this.raytraceOptions = new RaytraceOptions();
+        this.antiAlias = true;
+        this.renderOrder = RenderOrder.Progressive;
+        //outputTarget: HTMLCanvasElement = null;
+    }
+}
+var SampleFunctions;
+(function (SampleFunctions) {
+    SampleFunctions["JitteredSample"] = "JitteredSample";
+    SampleFunctions["StratifiedSample"] = "StratifiedSample";
+    SampleFunctions["UniformSample"] = "UniformSample";
+})(SampleFunctions || (SampleFunctions = {}));
+var RenderOrder;
+(function (RenderOrder) {
+    RenderOrder[RenderOrder["Progressive"] = 0] = "Progressive";
+})(RenderOrder || (RenderOrder = {}));
+class EnvironmentOptions {
+    constructor() {
+        this.backgroundColor = new _lib__WEBPACK_IMPORTED_MODULE_0__["Color"](0, 0, 0, 1.0);
+        this.ambient = new _lib__WEBPACK_IMPORTED_MODULE_0__["Color"](0, 0, 0, 1.0);
+    }
+}
+class RaytraceOptions {
+    constructor() {
+        this.sampleFunction = SampleFunctions.JitteredSample;
+        this.subDivide = 64;
+        this.reflectDepth = 8;
+        this.refrectDepth = 8;
+        this.hitThreshold = 0.1;
+    }
+}
+class RenderCmd {
+    constructor(renderOption) {
+        this.renderOption = null;
+        this.buffer = null;
+        this.xRange = null;
+        this.yRange = null;
+        this.renderOption = renderOption;
+    }
+}
+class RenderState {
+    constructor() {
+        this.progress = 0;
+        this.buffer = null;
+    }
+}
+function startRenderWorker(renderCmd, outputTarget) {
+    //renderCmd.buffer = new Uint8ClampedArray(renderCmd.xRange.length * renderCmd.yRange.length << 2);
+    let worker = new Worker("./build/renderWorker.js");
+    let ctx = outputTarget.getContext("2d");
+    worker.onmessage = (e) => {
+        let state = e.data;
+        let imgData = new ImageData(state.buffer, renderCmd.xRange.size, renderCmd.yRange.size);
+        ctx.putImageData(imgData, renderCmd.xRange.from, renderCmd.yRange.from);
+        if (state.progress >= 1)
+            worker.terminate();
+    };
+    renderCmd.buffer;
+    worker.postMessage(renderCmd, [renderCmd.buffer.buffer]);
+}
+function renderRaytrace(sdf, renderOption, outputTarget) {
+    //outputTarget.width = renderOption.width;
+    //outputTarget.height = renderOption.height;
+    let renderCmd = new RenderCmd(renderOption);
+    renderCmd.xRange = new _lib__WEBPACK_IMPORTED_MODULE_0__["Range"](0, renderOption.width);
+    renderCmd.yRange = new _lib__WEBPACK_IMPORTED_MODULE_0__["Range"](0, renderOption.height);
+    let imgDta = outputTarget.getContext("2d").getImageData(0, 0, renderOption.width, renderOption.height);
+    renderCmd.buffer = new Uint8ClampedArray(imgDta.data);
+    startRenderWorker(renderCmd, outputTarget);
+}
+function renderSDF(sdf, renderOption, outputTarget) {
+    const width = renderOption.width;
+    const height = renderOption.height;
+    const threshold = 1;
+    outputTarget.width = width;
+    outputTarget.height = height;
+    let ctx = outputTarget.getContext("2d");
+    let buffer = new Uint8ClampedArray(width * height << 2);
+    let imgData = new ImageData(buffer, width, height);
+    for (let y = -height / 2 + 1; y <= height / 2; y++) {
+        for (let x = -width / 2; x < width / 2; x++) {
+            let [dst, mat] = sdf(x, y);
+            let color = renderOption.environmentOptions.backgroundColor;
+            if (dst <= 0)
+                color = mat.emission;
+            else if (dst < threshold) {
+                var t = dst / threshold;
+                color = _lib__WEBPACK_IMPORTED_MODULE_0__["Color"].blend(renderOption.environmentOptions.backgroundColor, mat.emission, 1 - t);
+            }
+            drawPixel(imgData, x + width / 2, -y + height / 2, width, height, color);
+        }
+    }
+    ctx.putImageData(imgData, 0, 0);
+}
+function drawPixel(imgData, x, y, width, height, color) {
+    //alert(x);
+    let idx = (y * width + x) * 4;
+    imgData.data[idx] = color.red;
+    imgData.data[idx + 1] = color.green;
+    imgData.data[idx + 2] = color.blue;
+    imgData.data[idx + 3] = Math.floor(color.alpha * 255);
+}
+
+
 
 /***/ }),
 

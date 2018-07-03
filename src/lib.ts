@@ -232,6 +232,11 @@ class Range extends Vector2
         this[1] = value;
     }
 
+    get size()
+    {
+        console.log(this[1] - this[0]);
+        return this[1] - this[0];
+    }
     inRange(n: number): boolean
     {
         return this.from < n && n < this.to;
