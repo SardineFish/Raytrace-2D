@@ -346,5 +346,5 @@ export
     Range,
     Material,
     mapColor,
-    gradient
+    gradient,
 };

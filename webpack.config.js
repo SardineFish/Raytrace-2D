@@ -4,7 +4,8 @@ module.exports= {
     mode:"development",
     entry: {
         main: "./src/main.js",
-        renderWorker:"./src/renderWorker.ts"
+        renderWorker: "./src/renderWorker.ts",
+        testWorker: "./src/testWorker.ts"
     },
     devtool:"source-map",
     output:{

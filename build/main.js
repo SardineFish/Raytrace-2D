@@ -376,6 +376,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shape__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./shape */ "./src/shape.ts");
 /* harmony import */ var _trace__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./trace */ "./src/trace.ts");
 /* harmony import */ var _render__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./render */ "./src/render.ts");
+/* harmony import */ var _sdf_builder__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./sdf-builder */ "./src/sdf-builder.ts");
+
 
 
 
@@ -390,11 +392,18 @@ window.wkr = new Worker("./build/renderWorker.js");
 wkr.onmessage = (e) => {
 	console.log(e);
 };
+let testWorker = new Worker("./build/testWorker.js");
+testWorker.onmessage = (e) =>
+{
+	console.log(_sdf_builder__WEBPACK_IMPORTED_MODULE_5__["FunctionRecaller"].recall(e.data));
+}
 function main(t)
 {
 	const SubDivide = 64;
 
-	let c = Object(_shape__WEBPACK_IMPORTED_MODULE_2__["circle"])(50, new _lib__WEBPACK_IMPORTED_MODULE_0__["Material"]( new _lib__WEBPACK_IMPORTED_MODULE_0__["Color"](255, 255, 252, 1.0)));
+	let c = Object(_shape__WEBPACK_IMPORTED_MODULE_2__["circle"])(50, new _lib__WEBPACK_IMPORTED_MODULE_0__["Material"](new _lib__WEBPACK_IMPORTED_MODULE_0__["Color"](255, 255, 252, 1.0)));
+	testWorker.postMessage(c.recaller);
+	return;
 	let c2 = Object(_transform__WEBPACK_IMPORTED_MODULE_1__["translate"])(Object(_shape__WEBPACK_IMPORTED_MODULE_2__["circle"])(50, new _lib__WEBPACK_IMPORTED_MODULE_0__["Material"](new _lib__WEBPACK_IMPORTED_MODULE_0__["Color"](0, 255, 255, 1.0))), 50, 0);
 	let c3 = Object(_transform__WEBPACK_IMPORTED_MODULE_1__["translate"])(Object(_shape__WEBPACK_IMPORTED_MODULE_2__["circle"])(10, new _lib__WEBPACK_IMPORTED_MODULE_0__["Material"](new _lib__WEBPACK_IMPORTED_MODULE_0__["Color"](255, 255, 0, 1))), 70, 0);
 	let rec = Object(_transform__WEBPACK_IMPORTED_MODULE_1__["translate"])(Object(_shape__WEBPACK_IMPORTED_MODULE_2__["rect"])(50, 50, new _lib__WEBPACK_IMPORTED_MODULE_0__["Material"](new _lib__WEBPACK_IMPORTED_MODULE_0__["Color"](255, 0, 0, 1.0))), -0, -200);
@@ -562,6 +571,30 @@ window.onload = () => {
 
 /***/ }),
 
+/***/ "./src/module-hub.js":
+/*!***************************!*\
+  !*** ./src/module-hub.js ***!
+  \***************************/
+/*! exports provided: moduleHub */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "moduleHub", function() { return moduleHub; });
+/* harmony import */ var _sdf_builder__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./sdf-builder */ "./src/sdf-builder.ts");
+/**
+ * To solve the problem cause by Webpack.
+ */
+
+
+window.moduleHub = {
+    BuildSDF: _sdf_builder__WEBPACK_IMPORTED_MODULE_0__["BuildSDF"]
+};
+
+
+
+/***/ }),
+
 /***/ "./src/render.ts":
 /*!***********************!*\
   !*** ./src/render.ts ***!
@@ -699,6 +732,49 @@ function drawPixel(imgData, x, y, width, height, color) {
 
 /***/ }),
 
+/***/ "./src/sdf-builder.ts":
+/*!****************************!*\
+  !*** ./src/sdf-builder.ts ***!
+  \****************************/
+/*! exports provided: FunctionRecaller, BuildSDF */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FunctionRecaller", function() { return FunctionRecaller; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BuildSDF", function() { return BuildSDF; });
+/* harmony import */ var _lib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./lib */ "./src/lib.ts");
+/* harmony import */ var _module_hub__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./module-hub */ "./src/module-hub.js");
+
+
+var _force_import = [_lib__WEBPACK_IMPORTED_MODULE_0__["Material"], _lib__WEBPACK_IMPORTED_MODULE_0__["sqrt"], _lib__WEBPACK_IMPORTED_MODULE_0__["min"], _lib__WEBPACK_IMPORTED_MODULE_0__["max"], _lib__WEBPACK_IMPORTED_MODULE_0__["length"], _lib__WEBPACK_IMPORTED_MODULE_0__["abs"], _lib__WEBPACK_IMPORTED_MODULE_0__["clamp"], _lib__WEBPACK_IMPORTED_MODULE_0__["smin"], _lib__WEBPACK_IMPORTED_MODULE_0__["Color"], _module_hub__WEBPACK_IMPORTED_MODULE_1__["moduleHub"]];
+function BuildSDF(sdf, builder, args) {
+    sdf.recaller = new FunctionRecaller(builder, args);
+    return sdf;
+}
+class FunctionRecaller {
+    constructor(func, args) {
+        this.isRecaller = true;
+        this.funcStr = func.toString();
+        if (/^(function)\s*([a-zA-Z0-9_$]+)\s*(\(.*\))/.test(this.funcStr))
+            this.funcStr = this.funcStr.replace(/^(function)\s*([a-zA-Z0-9_$]+)\s*(\(.*\))/, "$1$3");
+        console.log(this.funcStr);
+        this.args = args.map(arg => (arg instanceof Function) ? arg.recaller : arg);
+    }
+    static recall(recaller) {
+        let args = recaller.args.map(arg => (arg instanceof FunctionRecaller) ? arg.recall() : arg);
+        let func = eval(`(${recaller.funcStr})`);
+        return func.call(args);
+    }
+    recall() {
+        return FunctionRecaller.recall(this);
+    }
+}
+
+
+
+/***/ }),
+
 /***/ "./src/shape.ts":
 /*!**********************!*\
   !*** ./src/shape.ts ***!
@@ -714,6 +790,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "belt", function() { return belt; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "capsule", function() { return capsule; });
 /* harmony import */ var _lib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./lib */ "./src/lib.ts");
+/* harmony import */ var _sdf_builder__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./sdf-builder */ "./src/sdf-builder.ts");
+
 
 /**
  *
@@ -722,7 +800,8 @@ __webpack_require__.r(__webpack_exports__);
  * @returns {SDF}
  */
 function circle(r, material) {
-    return (x, y) => [Object(_lib__WEBPACK_IMPORTED_MODULE_0__["sqrt"])(x * x + y * y) - r, material];
+    //return (x, y) => [sqrt(x * x + y * y) - r, material];
+    return Object(_sdf_builder__WEBPACK_IMPORTED_MODULE_1__["BuildSDF"])((x, y) => [Object(_lib__WEBPACK_IMPORTED_MODULE_0__["sqrt"])(x * x + y * y) - r, material], circle, [r, material]);
 }
 /**
  *
@@ -882,7 +961,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "intersect", function() { return intersect; });
 /* harmony import */ var _lib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./lib */ "./src/lib.ts");
 
-
 /**
  *
  * @param {SDF} sdf
@@ -891,7 +969,15 @@ __webpack_require__.r(__webpack_exports__);
  * @returns {SDF}
  */
 function translate(sdf, dx, dy) {
-    return (x, y) => sdf(x - dx, y - dy);
+    const f = (x, y) => sdf(x - dx, y - dy);
+    f.toString = () => {
+        return `
+        (x, y) => {
+            var sdf = ${sdf.toString()};
+            return sdf(x - ${dx}, y - ${dy});
+        }`;
+    };
+    return f;
 }
 /**
  *
@@ -903,7 +989,15 @@ function translate(sdf, dx, dy) {
 function scale(sdf, kx, ky) {
     kx = kx === undefined ? 1 : kx;
     ky = ky === undefined ? kx : ky;
-    return (x, y) => sdf(x / kx, y / ky);
+    const f = (x, y) => sdf(x / kx, y / ky);
+    f.toString = () => {
+        return `
+        (x, y) => {
+            var sdf = ${sdf.toString()};
+            return sdf(x / ${kx}, y / ${ky});
+        }`;
+    };
+    return f;
 }
 /**
  *
@@ -914,7 +1008,15 @@ function scale(sdf, kx, ky) {
 function rotate(sdf, rad) {
     const cos = Math.cos(rad);
     const sin = Math.sin(rad);
-    return (x, y) => sdf(x * cos - y * sin, x * sin + y * cos);
+    const f = (x, y) => sdf(x * cos - y * sin, x * sin + y * cos);
+    f.toString = () => {
+        return `
+        (x, y) => {
+            var sdf = ${sdf.toString()};
+            return sdf(x * ${cos} - y * ${sin}, x * ${sin} + y * ${cos});
+        }`;
+    };
+    return f;
 }
 /**
  *
@@ -923,7 +1025,7 @@ function rotate(sdf, rad) {
  * @returns {SDF}
  */
 function union(sdf1, sdf2) {
-    return (x, y) => {
+    const f = (x, y) => {
         let [d1, c1] = sdf1(x, y);
         let [d2, c2] = sdf2(x, y);
         if (d1 < d2)
@@ -931,6 +1033,22 @@ function union(sdf1, sdf2) {
         else
             return [d2, c2];
     };
+    f.toString = () => {
+        return `
+        (x, y) =>
+        {
+            var sdf1 = ${sdf1.toString()};
+            var sdf2 = ${sdf2.toString()};
+            let [d1, c1] = sdf1(x, y);
+            let [d2, c2] = sdf2(x, y);
+            if (d1 < d2)
+                return [d1, c1];
+            else
+                return [d2, c2];
+
+        }`;
+    };
+    return f;
 }
 /**
  *

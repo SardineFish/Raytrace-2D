@@ -1,4 +1,6 @@
 import { Material, sqrt, min, max, length, abs, clamp } from "./lib";
+import { BuildSDF } from "./sdf-builder";
+/*import { moduleHub } from "./module-hub";*/
 
 type SDFResult = [number, Material];
 type SDF = (x: number, y: number) => SDFResult;
@@ -11,7 +13,11 @@ type SDF = (x: number, y: number) => SDFResult;
  */
 function circle(r: number, material: Material): SDF
 {
-    return (x, y) => [sqrt(x * x + y * y) - r, material];
+    //return (x, y) => [sqrt(x * x + y * y) - r, material];
+    return BuildSDF(
+        (x, y) => [sqrt(x * x + y * y) - r, material],
+        circle,
+        [r, material]);
 }
 /**
  * 

@@ -1,6 +1,4 @@
-import { max, smin, Color } from "./lib";
-import { Material } from "./lib";
-import { min } from "./lib";
+import { smin, Color, Material } from "./lib";
 type SDFResult = [number, Material];
 type SDF = (x: number, y: number) => SDFResult;
 /**
@@ -12,7 +10,16 @@ type SDF = (x: number, y: number) => SDFResult;
  */
 function translate(sdf:SDF, dx:number, dy:number):SDF
 {
-    return (x, y) => sdf(x - dx, y - dy);
+    const f: SDF = (x, y) => sdf(x - dx, y - dy);
+    f.toString = () =>
+    {
+        return `
+        (x, y) => {
+            var sdf = ${sdf.toString()};
+            return sdf(x - ${dx}, y - ${dy});
+        }`;
+    };
+    return f;
 }
 
 /**
@@ -26,7 +33,18 @@ function scale(sdf: SDF, kx: number, ky:number):SDF
 {
     kx = kx === undefined ? 1 : kx;
     ky = ky === undefined ? kx : ky;
-    return (x, y) => sdf(x / kx, y / ky);
+
+    const f: SDF = (x, y) => sdf(x / kx, y / ky);
+
+    f.toString = () =>
+    {
+        return `
+        (x, y) => {
+            var sdf = ${sdf.toString()};
+            return sdf(x / ${kx}, y / ${ky});
+        }`;
+    };
+    return f;
 }
 
 /**
@@ -39,7 +57,18 @@ function rotate(sdf:SDF, rad:number):SDF
 {
     const cos = Math.cos(rad);
     const sin = Math.sin(rad);
-    return (x, y) => sdf(x * cos - y * sin, x * sin + y * cos);
+
+    const f: SDF = (x, y) => sdf(x * cos - y * sin, x * sin + y * cos);
+
+    f.toString = () =>
+    {
+        return `
+        (x, y) => {
+            var sdf = ${sdf.toString()};
+            return sdf(x * ${cos} - y * ${sin}, x * ${sin} + y * ${cos});
+        }`;
+    };
+    return f;
 }
 
 /**
@@ -50,16 +79,36 @@ function rotate(sdf:SDF, rad:number):SDF
  */
 function union(sdf1:SDF, sdf2:SDF):SDF
 {
-    return (x, y) =>
+    const f: SDF = (x, y) =>
     {
-        let [d1,c1] = sdf1(x, y);
-        let [d2,c2] = sdf2(x, y);
+        let [d1, c1] = sdf1(x, y);
+        let [d2, c2] = sdf2(x, y);
         if (d1 < d2)
             return [d1, c1];
         else
-            return [d2, c2];    
+            return [d2, c2];
             
-    }
+    };
+
+    f.toString = () =>
+    {
+        return `
+        (x, y) =>
+        {
+            var sdf1 = ${sdf1.toString()};
+            var sdf2 = ${sdf2.toString()};
+            let [d1, c1] = sdf1(x, y);
+            let [d2, c2] = sdf2(x, y);
+            if (d1 < d2)
+                return [d1, c1];
+            else
+                return [d2, c2];
+
+        }`
+    };
+    return f;
+
+    
 }
 
 /**

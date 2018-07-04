@@ -3,6 +3,7 @@ import { scale, translate, union, rotate, expand, subtract, repeat, displace, bl
 import { circle, rect, torus, belt, capsule } from "./shape";
 import { setBound, uniformSample, stratifiedSample, jitteredSample, sample } from "./trace";
 import { RenderOption, renderSDF, renderRaytrace } from "./render";
+import { FunctionRecaller } from "./sdf-builder";
 /*type SDFResult = [number, Color];
 type SDF = (x: number, y: number) => SDFResult;*/
 const $ = (selector) => document.querySelector(selector);
@@ -12,11 +13,18 @@ window.wkr = new Worker("./build/renderWorker.js");
 wkr.onmessage = (e) => {
 	console.log(e);
 };
+let testWorker = new Worker("./build/testWorker.js");
+testWorker.onmessage = (e) =>
+{
+	console.log(FunctionRecaller.recall(e.data));
+}
 function main(t)
 {
 	const SubDivide = 64;
 
-	let c = circle(50, new Material( new Color(255, 255, 252, 1.0)));
+	let c = circle(50, new Material(new Color(255, 255, 252, 1.0)));
+	testWorker.postMessage(c.recaller);
+	return;
 	let c2 = translate(circle(50, new Material(new Color(0, 255, 255, 1.0))), 50, 0);
 	let c3 = translate(circle(10, new Material(new Color(255, 255, 0, 1))), 70, 0);
 	let rec = translate(rect(50, 50, new Material(new Color(255, 0, 0, 1.0))), -0, -200);
