@@ -291,6 +291,48 @@ class Range extends Vector2 {
         return this.from <= n && n <= this.to;
     }
 }
+class Matrix3x3 {
+    constructor(mat = null) {
+        this[0] = [1, 0, 0];
+        this[1] = [0, 1, 0];
+        this[2] = [0, 0, 1];
+        if (mat instanceof Matrix3x3 || mat instanceof Array) {
+            this[0] = mat[0].copyWithin(0, 0);
+            this[1] = mat[1].copyWithin(0, 0);
+            this[2] = mat[2].copyWithin(0, 0);
+        }
+    }
+    static get identity() {
+        return Matrix3x3_Identity;
+    }
+    static multipleVector(mat, v) {
+        let result = [
+            mat[0][0] * v[0] + mat[0][1] * v[1] + mat[0][2] * 1,
+            mat[1][0] * v[0] + mat[1][1] * v[1] + mat[1][2] * 1,
+            mat[2][0] * v[2] + mat[2][1] * v[1] + mat[2][2] * 1,
+        ];
+        return new Vector2(result);
+    }
+    static multipleMatrix(a, b) {
+        let mat = new Matrix3x3();
+        for (let i = 0; i < 3; i++)
+            for (let j = 0; j < 3; j++)
+                for (let k = 0; k < 3; k++)
+                    mat[i][j] = a[i][k] * b[k][j];
+        return mat;
+    }
+    multipleVector(v) {
+        return Matrix3x3.multipleVector(this, v);
+    }
+    multipleMatrix(m) {
+        let mat = Matrix3x3.multipleMatrix(this, m);
+        this[0] = mat[0].copyWithin(0, 0);
+        this[1] = mat[1].copyWithin(0, 0);
+        this[2] = mat[2].copyWithin(0, 0);
+        return this;
+    }
+}
+const Matrix3x3_Identity = new Matrix3x3();
 class Material {
     constructor(emission = new Color(0, 0, 0, 1.0)) {
         this.diffuseColor = new Color(0, 0, 0, 1.0);
