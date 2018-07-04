@@ -1,6 +1,6 @@
 import { RenderCmd, RenderState } from "./render";
-import { jitteredSample, stratifiedSample, uniformSample } from "./trace";
-import { Range } from "./lib";
+import { jitteredSample, stratifiedSample, uniformSample, sample } from "./trace";
+import { Range, Matrix3x3, Vector2 } from "./lib";
 
 onmessage = (e) =>
 {
@@ -27,8 +27,10 @@ function render(renderCmd: RenderCmd)
     let width = renderCmd.xRange.size;
     let height = renderCmd.yRange.size;
     
-    let renderFunc = SampleFunctions[renderCmd.renderOption.raytraceOptions.sampleFunction];
+    let sampleFunc = SampleFunctions[renderCmd.renderOption.raytraceOptions.sampleFunction];
     let buffer = renderCmd.buffer;
+
+    let progress = 0;
     
     for (let y = 0; y < height; y++)
     {
@@ -36,16 +38,23 @@ function render(renderCmd: RenderCmd)
         {
             let pos = y * width + x;
             let idx = pos << 2;
-            buffer[idx] = 255 - buffer[idx];
-            buffer[idx + 1] = 255 - buffer[idx + 1];
-            buffer[idx + 2] = 255 - buffer[idx + 2];
-            buffer[idx + 3] = 255 ;
+            let p = Matrix3x3.multipleVector(renderCmd.renderOption.viewerOptions.transform, new Vector2(xStart + x, yStart + y));
+            let color = sample(renderCmd.sdf,
+                p,
+                sampleFunc,
+                renderCmd.renderOption.raytraceOptions.hitThreshold,
+                renderCmd.renderOption.raytraceOptions.subDivide
+            );
+            buffer[idx] = color.red;
+            buffer[idx + 1] = color.green;
+            buffer[idx + 2] = color.blue;
+            buffer[idx + 3] = color.alpha;
         }
-    }
 
-    let state = new RenderState();
-    state.buffer = buffer;
-    state.progress = 1;
-    postMessage(state, undefined, [state.buffer.buffer]);
+        let state = new RenderState();
+        state.buffer = new Uint8ClampedArray(buffer);
+        state.progress = y / height;
+        postMessage(state, undefined, [state.buffer.buffer]);
+    }
 }
 

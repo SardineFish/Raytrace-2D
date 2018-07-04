@@ -1,5 +1,5 @@
 import { jitteredSample, stratifiedSample, uniformSample } from "./trace";
-import { Color, Material, Range } from "./lib";
+import { Color, Material, Range, Matrix3x3 } from "./lib";
 
 type SDFResult = [number, Material];
 type SDF = (x: number, y: number) => SDFResult;
@@ -10,6 +10,7 @@ class RenderOption
     height: number = 480;
     environmentOptions: EnvironmentOptions = new EnvironmentOptions();
     raytraceOptions: RaytraceOptions = new RaytraceOptions();
+    viewerOptions: ViewerOptions = new ViewerOptions();
     antiAlias: boolean = true;
     renderOrder: RenderOrder = RenderOrder.Progressive;
     //outputTarget: HTMLCanvasElement = null;
@@ -36,6 +37,10 @@ class RaytraceOptions
     reflectDepth: number = 8;
     refrectDepth: number = 8;
     hitThreshold: number = 0.1;
+}
+class ViewerOptions
+{
+    transform: Matrix3x3 = new Matrix3x3();
 }
 
 class RenderCmd

@@ -90,7 +90,7 @@
 /*!********************!*\
   !*** ./src/lib.ts ***!
   \********************/
-/*! exports provided: Color, max, min, sqrt, abs, length, clamp, smin, vec2, Vector2, plus, minus, scale, dot, cross, Vector4, vec4, Range, Material, mapColor, gradient */
+/*! exports provided: Color, max, min, sqrt, abs, length, clamp, smin, vec2, Vector2, Matrix3x3, plus, minus, scale, dot, cross, Vector4, vec4, Range, Material, mapColor, gradient */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -105,6 +105,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "smin", function() { return smin; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "vec2", function() { return vec2; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Vector2", function() { return Vector2; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Matrix3x3", function() { return Matrix3x3; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "plus", function() { return plus; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "minus", function() { return minus; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "scale", function() { return scale; });
@@ -303,7 +304,7 @@ class Matrix3x3 {
         }
     }
     static get identity() {
-        return Matrix3x3_Identity;
+        return new Matrix3x3();
     }
     static multipleVector(mat, v) {
         let result = [
@@ -332,7 +333,6 @@ class Matrix3x3 {
         return this;
     }
 }
-const Matrix3x3_Identity = new Matrix3x3();
 class Material {
     constructor(emission = new Color(0, 0, 0, 1.0)) {
         this.diffuseColor = new Color(0, 0, 0, 1.0);
@@ -408,6 +408,7 @@ function main(t)
 		c,
 		Object(_transform__WEBPACK_IMPORTED_MODULE_1__["translate"])(Object(_shape__WEBPACK_IMPORTED_MODULE_2__["circle"])(50, new _lib__WEBPACK_IMPORTED_MODULE_0__["Material"](new _lib__WEBPACK_IMPORTED_MODULE_0__["Color"](255, 0, 0, 1.0))), 50, 0)
 	);
+	console.log(graph.toString());
 	renderingSDF = graph;
 	let renderOption = new _render__WEBPACK_IMPORTED_MODULE_4__["RenderOption"]();
 	renderOption.environmentOptions.backgroundColor = new _lib__WEBPACK_IMPORTED_MODULE_0__["Color"](255, 128, 180, 1.0);
@@ -586,6 +587,7 @@ class RenderOption {
         this.height = 480;
         this.environmentOptions = new EnvironmentOptions();
         this.raytraceOptions = new RaytraceOptions();
+        this.viewerOptions = new ViewerOptions();
         this.antiAlias = true;
         this.renderOrder = RenderOrder.Progressive;
         //outputTarget: HTMLCanvasElement = null;
@@ -614,6 +616,11 @@ class RaytraceOptions {
         this.reflectDepth = 8;
         this.refrectDepth = 8;
         this.hitThreshold = 0.1;
+    }
+}
+class ViewerOptions {
+    constructor() {
+        this.transform = new _lib__WEBPACK_IMPORTED_MODULE_0__["Matrix3x3"]();
     }
 }
 class RenderCmd {

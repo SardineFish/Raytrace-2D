@@ -90,7 +90,7 @@
 /*!********************!*\
   !*** ./src/lib.ts ***!
   \********************/
-/*! exports provided: Color, max, min, sqrt, abs, length, clamp, smin, vec2, Vector2, plus, minus, scale, dot, cross, Vector4, vec4, Range, Material, mapColor, gradient */
+/*! exports provided: Color, max, min, sqrt, abs, length, clamp, smin, vec2, Vector2, Matrix3x3, plus, minus, scale, dot, cross, Vector4, vec4, Range, Material, mapColor, gradient */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -105,6 +105,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "smin", function() { return smin; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "vec2", function() { return vec2; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Vector2", function() { return Vector2; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Matrix3x3", function() { return Matrix3x3; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "plus", function() { return plus; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "minus", function() { return minus; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "scale", function() { return scale; });
@@ -303,7 +304,7 @@ class Matrix3x3 {
         }
     }
     static get identity() {
-        return Matrix3x3_Identity;
+        return new Matrix3x3();
     }
     static multipleVector(mat, v) {
         let result = [
@@ -332,7 +333,6 @@ class Matrix3x3 {
         return this;
     }
 }
-const Matrix3x3_Identity = new Matrix3x3();
 class Material {
     constructor(emission = new Color(0, 0, 0, 1.0)) {
         this.diffuseColor = new Color(0, 0, 0, 1.0);
@@ -381,6 +381,7 @@ class RenderOption {
         this.height = 480;
         this.environmentOptions = new EnvironmentOptions();
         this.raytraceOptions = new RaytraceOptions();
+        this.viewerOptions = new ViewerOptions();
         this.antiAlias = true;
         this.renderOrder = RenderOrder.Progressive;
         //outputTarget: HTMLCanvasElement = null;
@@ -409,6 +410,11 @@ class RaytraceOptions {
         this.reflectDepth = 8;
         this.refrectDepth = 8;
         this.hitThreshold = 0.1;
+    }
+}
+class ViewerOptions {
+    constructor() {
+        this.transform = new _lib__WEBPACK_IMPORTED_MODULE_0__["Matrix3x3"]();
     }
 }
 class RenderCmd {
@@ -521,22 +527,25 @@ function render(renderCmd) {
     let yEnd = renderCmd.yRange.to;
     let width = renderCmd.xRange.size;
     let height = renderCmd.yRange.size;
-    let renderFunc = SampleFunctions[renderCmd.renderOption.raytraceOptions.sampleFunction];
+    let sampleFunc = SampleFunctions[renderCmd.renderOption.raytraceOptions.sampleFunction];
     let buffer = renderCmd.buffer;
+    let progress = 0;
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
             let pos = y * width + x;
             let idx = pos << 2;
-            buffer[idx] = 255 - buffer[idx];
-            buffer[idx + 1] = 255 - buffer[idx + 1];
-            buffer[idx + 2] = 255 - buffer[idx + 2];
-            buffer[idx + 3] = 255;
+            let p = _lib__WEBPACK_IMPORTED_MODULE_2__["Matrix3x3"].multipleVector(renderCmd.renderOption.viewerOptions.transform, new _lib__WEBPACK_IMPORTED_MODULE_2__["Vector2"](xStart + x, yStart + y));
+            let color = Object(_trace__WEBPACK_IMPORTED_MODULE_1__["sample"])(renderCmd.sdf, p, sampleFunc, renderCmd.renderOption.raytraceOptions.hitThreshold, renderCmd.renderOption.raytraceOptions.subDivide);
+            buffer[idx] = color.red;
+            buffer[idx + 1] = color.green;
+            buffer[idx + 2] = color.blue;
+            buffer[idx + 3] = color.alpha;
         }
+        let state = new _render__WEBPACK_IMPORTED_MODULE_0__["RenderState"]();
+        state.buffer = new Uint8ClampedArray(buffer);
+        state.progress = y / height;
+        postMessage(state, undefined, [state.buffer.buffer]);
     }
-    let state = new _render__WEBPACK_IMPORTED_MODULE_0__["RenderState"]();
-    state.buffer = buffer;
-    state.progress = 1;
-    postMessage(state, undefined, [state.buffer.buffer]);
 }
 
 

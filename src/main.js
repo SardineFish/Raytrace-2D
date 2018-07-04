@@ -30,6 +30,7 @@ function main(t)
 		c,
 		translate(circle(50, new Material(new Color(255, 0, 0, 1.0))), 50, 0)
 	);
+	console.log(graph.toString());
 	renderingSDF = graph;
 	let renderOption = new RenderOption();
 	renderOption.environmentOptions.backgroundColor = new Color(255, 128, 180, 1.0);

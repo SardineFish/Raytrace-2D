@@ -265,7 +265,7 @@ class Matrix3x3
     [indexer: number]: number[];
     static get identity()
     {
-        return Matrix3x3_Identity;
+        return new Matrix3x3();
     }
     static multipleVector(mat:Matrix3x3,v: Vector2): Vector2
     {
@@ -299,7 +299,6 @@ class Matrix3x3
         return this;
     }
 }
-const Matrix3x3_Identity = new Matrix3x3();
 class Material
 {
     diffuseColor: Color = new Color(0, 0, 0, 1.0);
@@ -336,6 +335,7 @@ export
     smin,
     vec2,
     Vector2,
+    Matrix3x3,
     plus,
     minus,
     scale,
