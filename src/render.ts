@@ -148,19 +148,19 @@ export class Renderer
         {
             for (let x = 0; x < width; x++)
             {
-                let idx = (y * width + x) << 2;
-                let p = new Vector2(x, y);// Matrix3x3.multipleVector(this.options.viewport.transform, new Vector2(xStart + x, yStart + y));
+                let idx = (y * width + x) * 4;
+                let p = Matrix3x3.multiplePoint(this.options.viewport.transform, new Vector2(x, y));
                 let color = this.raytracer.sample(sdf, p);
                 buffer[idx] = color.red;
                 buffer[idx + 1] = color.green;
                 buffer[idx + 2] = color.blue;
-                buffer[idx + 3] = color.alpha;
+                buffer[idx + 3] = Math.floor(color.alpha * 255);
             }
-
+            /*
             let state = new RenderState();
             state.buffer = new Uint8ClampedArray(buffer);
             state.progress = y / height;
-            postMessage(state, undefined, [state.buffer.buffer]);
+            postMessage(state, undefined, [state.buffer.buffer]);*/
         }
         //outputTarget.width = renderOption.width;
         //outputTarget.height = renderOption.height;

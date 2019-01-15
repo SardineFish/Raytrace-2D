@@ -63,6 +63,7 @@ export class RayTracer2D
                 sampleFunction = this.uniformSample;
                 break;
         }
+        sampleFunction = sampleFunction.bind(this);
         let color = mapColor(sampleFunction(sdf, p), 1 / this.options.raytrace.subDivide);
         let distance = sdf(p.x, p.y)["0"];
         if (0 <= distance && distance <= antiAliasThreshold)

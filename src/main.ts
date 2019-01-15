@@ -53,17 +53,21 @@ function main(t?:number)
 			reflectDepth: 8,
 			refrectDepth: 8,
 			sampleFunction: "jittered",
-			subDivide: 64
+			subDivide: 2
 		},
 		renderOrder: "progressive",
 		viewport: {
 			size: vec2(800, 600),
-			transform: Matrix3x3.identity
+			transform: new Matrix3x3([
+				[1, 0, -400 + 1],
+				[0, 1, -300 + 1],
+				[0, 0, 1]
+			])
 		},
 		antiAlias: true
-	});
+	})
 	var buffer = new Uint8ClampedArray(800 * 600 * 4);
-	renderer.renderSDF(graph, buffer);
+	renderer.renderRaytrace(graph, buffer);
 	var imgData = new ImageData(buffer, 800, 600);
 	($("#canvas") as HTMLCanvasElement).getContext("2d").putImageData(imgData, 0, 0);
 	return;

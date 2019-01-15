@@ -423,6 +423,14 @@ class Matrix3x3 {
     }
     static multipleVector(mat, v) {
         let result = [
+            mat[0][0] * v[0] + mat[0][1] * v[1],
+            mat[1][0] * v[0] + mat[1][1] * v[1],
+            mat[2][0] * v[2] + mat[2][1] * v[1],
+        ];
+        return new Vector2(result);
+    }
+    static multiplePoint(mat, v) {
+        let result = [
             mat[0][0] * v[0] + mat[0][1] * v[1] + mat[0][2] * 1,
             mat[1][0] * v[0] + mat[1][1] * v[1] + mat[1][2] * 1,
             mat[2][0] * v[2] + mat[2][1] * v[1] + mat[2][2] * 1,
@@ -439,6 +447,9 @@ class Matrix3x3 {
     }
     multipleVector(v) {
         return Matrix3x3.multipleVector(this, v);
+    }
+    multiplePoint(p) {
+        return Matrix3x3.multiplePoint(this, p);
     }
     multipleMatrix(m) {
         let mat = Matrix3x3.multipleMatrix(this, m);

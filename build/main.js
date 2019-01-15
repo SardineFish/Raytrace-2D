@@ -423,6 +423,14 @@ class Matrix3x3 {
     }
     static multipleVector(mat, v) {
         let result = [
+            mat[0][0] * v[0] + mat[0][1] * v[1],
+            mat[1][0] * v[0] + mat[1][1] * v[1],
+            mat[2][0] * v[2] + mat[2][1] * v[1],
+        ];
+        return new Vector2(result);
+    }
+    static multiplePoint(mat, v) {
+        let result = [
             mat[0][0] * v[0] + mat[0][1] * v[1] + mat[0][2] * 1,
             mat[1][0] * v[0] + mat[1][1] * v[1] + mat[1][2] * 1,
             mat[2][0] * v[2] + mat[2][1] * v[1] + mat[2][2] * 1,
@@ -439,6 +447,9 @@ class Matrix3x3 {
     }
     multipleVector(v) {
         return Matrix3x3.multipleVector(this, v);
+    }
+    multiplePoint(p) {
+        return Matrix3x3.multiplePoint(this, p);
     }
     multipleMatrix(m) {
         let mat = Matrix3x3.multipleMatrix(this, m);
@@ -528,17 +539,21 @@ function main(t) {
             reflectDepth: 8,
             refrectDepth: 8,
             sampleFunction: "jittered",
-            subDivide: 64
+            subDivide: 2
         },
         renderOrder: "progressive",
         viewport: {
             size: lib_1.vec2(800, 600),
-            transform: lib_1.Matrix3x3.identity
+            transform: new lib_1.Matrix3x3([
+                [1, 0, -400 + 1],
+                [0, 1, -300 + 1],
+                [0, 0, 1]
+            ])
         },
         antiAlias: true
     });
     var buffer = new Uint8ClampedArray(800 * 600 * 4);
-    renderer.renderSDF(graph, buffer);
+    renderer.renderRaytrace(graph, buffer);
     var imgData = new ImageData(buffer, 800, 600);
     $("#canvas").getContext("2d").putImageData(imgData, 0, 0);
     return;
@@ -791,18 +806,19 @@ class Renderer {
         const [width, height] = this.options.viewport.size;
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
-                let idx = (y * width + x) << 2;
-                let p = new lib_1.Vector2(x, y); // Matrix3x3.multipleVector(this.options.viewport.transform, new Vector2(xStart + x, yStart + y));
+                let idx = (y * width + x) * 4;
+                let p = lib_1.Matrix3x3.multiplePoint(this.options.viewport.transform, new lib_1.Vector2(x, y));
                 let color = this.raytracer.sample(sdf, p);
                 buffer[idx] = color.red;
                 buffer[idx + 1] = color.green;
                 buffer[idx + 2] = color.blue;
-                buffer[idx + 3] = color.alpha;
+                buffer[idx + 3] = Math.floor(color.alpha * 255);
             }
+            /*
             let state = new RenderState();
             state.buffer = new Uint8ClampedArray(buffer);
             state.progress = y / height;
-            postMessage(state, undefined, [state.buffer.buffer]);
+            postMessage(state, undefined, [state.buffer.buffer]);*/
         }
         //outputTarget.width = renderOption.width;
         //outputTarget.height = renderOption.height;
@@ -1000,6 +1016,7 @@ class RayTracer2D {
                 sampleFunction = this.uniformSample;
                 break;
         }
+        sampleFunction = sampleFunction.bind(this);
         let color = lib_1.mapColor(sampleFunction(sdf, p), 1 / this.options.raytrace.subDivide);
         let distance = sdf(p.x, p.y)["0"];
         if (0 <= distance && distance <= antiAliasThreshold) {
