@@ -1,46 +1,41 @@
-import { jitteredSample, stratifiedSample, uniformSample } from "./trace";
-import { Color, Material, Range, Matrix3x3 } from "./lib";
+import { RayTracer2D } from "./trace";
+import { Color, Material, Range, Matrix3x3, Vector2 } from "./lib";
 
 type SDFResult = [number, Material];
 type SDF = (x: number, y: number) => SDFResult;
-
-class RenderOption
+export interface RanderCommand
 {
-    width: number = 600;
-    height: number = 480;
-    environmentOptions: EnvironmentOptions = new EnvironmentOptions();
-    raytraceOptions: RaytraceOptions = new RaytraceOptions();
-    viewerOptions: ViewerOptions = new ViewerOptions();
-    antiAlias: boolean = true;
-    renderOrder: RenderOrder = RenderOrder.Progressive;
-    //outputTarget: HTMLCanvasElement = null;
+    code: string;
+    options: RenderOption;
 }
-enum SampleFunctions
+export interface RenderOption
 {
-    JitteredSample = "JitteredSample",
-    StratifiedSample = "StratifiedSample",
-    UniformSample = "UniformSample",
+    environment: EnvironmentOptions;// = new EnvironmentOptions();
+    raytrace: RaytraceOptions;// = new RaytraceOptions();
+    viewport: ViewerOptions;// = new ViewerOptions();
+    antiAlias: boolean;// = true;
+    renderOrder: RenderOrder;// = RenderOrder.Progressive;
+    //outputTarget: HTMLCanvasElement;// = null;
 }
-enum RenderOrder
+export type SampleFunctions = "jittered" | "stratified" | "uniform";
+export type RenderOrder = "progressive";
+export interface EnvironmentOptions
 {
-    Progressive
+    backgroundColor: Color;
+    ambient: Color;
 }
-class EnvironmentOptions
+export interface RaytraceOptions
 {
-    backgroundColor: Color = new Color(0, 0, 0, 1.0);
-    ambient: Color = new Color(0, 0, 0, 1.0);
+    sampleFunction: SampleFunctions;// = SampleFunctions.JitteredSample;
+    subDivide: number;// = 64;
+    reflectDepth: number;// = 8;
+    refrectDepth: number;// = 8;
+    hitThreshold: number;// = 0.1;
 }
-class RaytraceOptions
+export interface ViewerOptions
 {
-    sampleFunction: SampleFunctions = SampleFunctions.JitteredSample;
-    subDivide: number = 64;
-    reflectDepth: number = 8;
-    refrectDepth: number = 8;
-    hitThreshold: number = 0.1;
-}
-class ViewerOptions
-{
-    transform: Matrix3x3 = new Matrix3x3();
+    size: Vector2;
+    transform: Matrix3x3;// = new Matrix3x3();
 }
 
 class RenderCmd
@@ -84,65 +79,104 @@ function renderRaytrace(sdf: SDF, renderOption: RenderOption, outputTarget:HTMLC
 {
     //outputTarget.width = renderOption.width;
     //outputTarget.height = renderOption.height;
-
+/*
     let renderCmd = new RenderCmd(renderOption);
-    renderCmd.xRange = new Range(0, renderOption.width);
-    renderCmd.yRange = new Range(0, renderOption.height);
+    renderCmd.xRange = new Range(0, renderOption.viewport.size.x);
+    renderCmd.yRange = new Range(0, renderOption.viewport.size.y);
     
     let imgDta = outputTarget.getContext("2d").getImageData(0, 0, renderOption.width, renderOption.height);
     renderCmd.buffer = new Uint8ClampedArray(imgDta.data);
-    startRenderWorker(renderCmd, outputTarget);
+    startRenderWorker(renderCmd, outputTarget);*/
 }
-function renderSDF(sdf: SDF,renderOption:RenderOption , outputTarget: HTMLCanvasElement)
+
+function renderSDF(sdf: SDF, renderOption: RenderOption, outputBuffer: Uint8ClampedArray)
 {
-    const width = renderOption.width;
-    const height = renderOption.height;
+    const width = renderOption.viewport.size.x;
+    const height = renderOption.viewport.size.y;
     const threshold = 1;
 
-    outputTarget.width = width;
-    outputTarget.height = height;
-    let ctx = outputTarget.getContext("2d");
-    let buffer = new Uint8ClampedArray(width * height << 2);
-    let imgData = new ImageData(buffer, width, height);
+    let imgData = new ImageData(outputBuffer, width, height);
 
     for (let y = -height / 2 + 1; y <= height / 2; y++)
     {
         for (let x = -width / 2; x < width / 2; x++)
         {
             let [dst, mat] = sdf(x, y);
-            let color = renderOption.environmentOptions.backgroundColor;
+            let color = renderOption.environment.backgroundColor;
             if (dst <= 0)
                 color = mat.emission;
             else if (dst < threshold)
             {
                 var t = dst / threshold;
-                color = Color.blend(renderOption.environmentOptions.backgroundColor, mat.emission, 1 - t);
+                color = Color.blend(renderOption.environment.backgroundColor, mat.emission, 1 - t);
             }
 
-            drawPixel(imgData, x + width / 2, -y + height / 2, width, height, color);
+            drawPixel(outputBuffer, x + width / 2, -y + height / 2, width, height, color);
         }
     }
-    ctx.putImageData(imgData, 0, 0);
 }
 
-function drawPixel(imgData: ImageData, x: number, y: number, width: number, height: number, color: Color)
+function drawPixel(buffer: Uint8ClampedArray, x: number, y: number, width: number, height: number, color: Color)
 {
-    //alert(x);
     let idx = (y * width + x) * 4;
-    imgData.data[idx] = color.red;
-    imgData.data[idx + 1] = color.green;
-    imgData.data[idx + 2] = color.blue;
-    imgData.data[idx + 3] = Math.floor(color.alpha * 255);
+    buffer[idx] = color.red;
+    buffer[idx + 1] = color.green;
+    buffer[idx + 2] = color.blue;
+    buffer[idx + 3] = Math.floor(color.alpha * 255);
 }
-export
+
+export class Renderer
 {
-    RenderOption,
-    SampleFunctions,
-    EnvironmentOptions,
-    RaytraceOptions,
-    RenderCmd,
-    renderRaytrace,
-    renderSDF,
-    RenderState
-    
-};
+    options: RenderOption;
+    raytracer: RayTracer2D;
+
+    constructor(options: RenderOption)
+    {
+        this.options = options;
+        this.raytracer = new RayTracer2D(options);
+    }
+
+    render(sdf: SDF, buffer: Uint8ClampedArray): void
+    {
+        
+    }
+
+    renderRaytrace(sdf: SDF, buffer: Uint8ClampedArray)
+    {
+        const [width, height] = this.options.viewport.size;
+        for (let y = 0; y < height; y++)
+        {
+            for (let x = 0; x < width; x++)
+            {
+                let idx = (y * width + x) << 2;
+                let p = new Vector2(x, y);// Matrix3x3.multipleVector(this.options.viewport.transform, new Vector2(xStart + x, yStart + y));
+                let color = this.raytracer.sample(sdf, p);
+                buffer[idx] = color.red;
+                buffer[idx + 1] = color.green;
+                buffer[idx + 2] = color.blue;
+                buffer[idx + 3] = color.alpha;
+            }
+
+            let state = new RenderState();
+            state.buffer = new Uint8ClampedArray(buffer);
+            state.progress = y / height;
+            postMessage(state, undefined, [state.buffer.buffer]);
+        }
+        //outputTarget.width = renderOption.width;
+        //outputTarget.height = renderOption.height;
+
+        /*
+        let renderCmd = new RenderCmd(renderOption);
+        renderCmd.xRange = new Range(0, renderOption.width);
+        renderCmd.yRange = new Range(0, renderOption.height);
+
+        let imgDta = outputTarget.getContext("2d").getImageData(0, 0, renderOption.width, renderOption.height);
+        renderCmd.buffer = new Uint8ClampedArray(imgDta.data);
+        startRenderWorker(renderCmd, outputTarget);*/
+    }
+
+    renderSDF(sdf: SDF, buffer: Uint8ClampedArray)
+    {
+        renderSDF(sdf, this.options, buffer);
+    }
+}

@@ -107,6 +107,46 @@ class Color {
         this.blue = b;
         this.alpha = a;
     }
+    get hue() {
+        const R = this.red / 255;
+        const G = this.green / 255;
+        const B = this.blue / 255;
+        const max = Math.max(R, G, B);
+        const min = Math.min(R, G, B);
+        let h;
+        if (max === min)
+            h = 0;
+        else if (max === R)
+            h = 60 * (0 + (G - B) / (max - min));
+        else if (max === G)
+            h = 60 * (2 + (B - R) / (max - min));
+        else if (max === B)
+            h = 60 * (4 + (R - G) / (max - min));
+        return h < 0 ? h + 360 : h;
+    }
+    get saturation() {
+        const max = Math.max(this.red, this.green, this.blue) / 255;
+        const min = Math.min(this.red, this.blue, this.green) / 255;
+        if (max === 0)
+            return 0;
+        else if (min == 1)
+            return 0;
+        return (max - min) / (1 - Math.abs(max + min - 1));
+    }
+    get lightness() {
+        const max = Math.max(this.red, this.green, this.blue) / 255;
+        const min = Math.min(this.red, this.blue, this.green) / 255;
+        return (max + min) / 2;
+    }
+    set hue(value) {
+        this.setHSL(value, this.saturation, this.lightness);
+    }
+    set saturation(value) {
+        this.setHSL(this.hue, value, this.lightness);
+    }
+    set lightness(value) {
+        this.setHSL(this.hue, this.saturation, value);
+    }
     static add(a, b) {
         const t = b.alpha;
         return new Color((1 - t) * a.red + t * b.red, (1 - t) * a.green + t * b.green, (1 - t) * a.blue + t * b.blue, 1 - (1 - a.alpha) * (1 - b.alpha));
@@ -114,8 +154,74 @@ class Color {
     static blend(a, b, t) {
         return new Color((1 - t) * a.red + t * b.red, (1 - t) * a.green + t * b.green, (1 - t) * a.blue + t * b.blue, 1);
     }
+    static fromHSL(h, s, l, alpha = 1) {
+        return new Color(0, 0, 0, alpha).setHSL(h, s, l);
+    }
+    setHSL(h, s, l) {
+        h = h < 0 ? h + 360 : h;
+        const chroma = (1 - Math.abs(2 * l - 1)) * s;
+        if (isNaN(h)) {
+            this.red = this.green = this.blue = 0;
+            return this;
+        }
+        h = h / 60;
+        const x = chroma * (1 - Math.abs(h % 2 - 1));
+        let color = [0, 0, 0];
+        if (0 <= h && h <= 1)
+            color = [chroma, x, 0];
+        else if (h <= 2)
+            color = [x, chroma, 0];
+        else if (h <= 3)
+            color = [0, chroma, x];
+        else if (h <= 4)
+            color = [0, x, chroma];
+        else if (h <= 5)
+            color = [x, 0, chroma];
+        else if (h <= 6)
+            color = [chroma, 0, x];
+        let m = l - chroma / 2;
+        this.red = Math.floor((color[0] + m) * 255);
+        this.green = Math.floor((color[1] + m) * 255);
+        this.blue = Math.floor((color[2] + m) * 255);
+        return this;
+    }
+    static fromString(str, alpha = 1) {
+        str = str.replace(new RegExp(/\s/g), "");
+        var reg = new RegExp("#[0-9a-fA-F]{6}");
+        if (reg.test(str)) {
+            str = str.replace("#", "");
+            var strR = str.charAt(0) + str.charAt(1);
+            var strG = str.charAt(2) + str.charAt(3);
+            var strB = str.charAt(4) + str.charAt(5);
+            var r = parseInt(strR, 16);
+            var g = parseInt(strG, 16);
+            var b = parseInt(strB, 16);
+            return new Color(r, g, b, alpha);
+        }
+        reg = new RegExp("rgb\\(([0-9]+(\\.[0-9]+){0,1}),([0-9]+(\\.[0-9]+){0,1}),([0-9]+(\\.[0-9]+){0,1})\\)");
+        if (reg.test(str)) {
+            var colorArray = str.replace("rgb(", "").replace(")", "").split(",");
+            var r = parseInt(colorArray[0]);
+            var g = parseInt(colorArray[1]);
+            var b = parseInt(colorArray[2]);
+            var a = 1.00;
+            return new Color(r, g, b, a);
+        }
+        reg = new RegExp("rgba\\(([0-9]+(\\.[0-9]+){0,1}),([0-9]+(\\.[0-9]+){0,1}),([0-9]+(\\.[0-9]+){0,1}),([0-9]+(\\.[0-9]+){0,1})\\)");
+        if (reg.test(str)) {
+            var colorArray = str.replace("rgba(", "").replace(")", "").split(",");
+            var r = parseInt(colorArray[0]);
+            var g = parseInt(colorArray[1]);
+            var b = parseInt(colorArray[2]);
+            var a = parseFloat(colorArray[3]);
+            return new Color(r, g, b, a);
+        }
+    }
     toString() {
-        return `rgba(${this.red}, ${this.green}, ${this.blue}, ${this.alpha})`;
+        return `rgba(${this.red},${this.green},${this.blue},${this.alpha})`;
+    }
+    toVector4() {
+        return new Vector4(this.red / 255, this.green / 255, this.blue / 255, this.alpha);
     }
 }
 exports.Color = Color;
@@ -289,6 +395,18 @@ class Range extends Vector2 {
     }
 }
 exports.Range = Range;
+class Rect {
+    constructor(size, offset = new Vector2(0, 0)) {
+        this.size = size;
+        this.offset = offset;
+    }
+    inRect(p) {
+        let dp = scale(minus(p, this.offset), 2);
+        return -this.size.x <= dp.x && dp.x <= this.size.x
+            && -this.size.y <= dp.y && dp.y <= this.size.y;
+    }
+}
+exports.Rect = Rect;
 class Matrix3x3 {
     constructor(mat = null) {
         this[0] = [1, 0, 0];
@@ -356,142 +474,6 @@ exports.gradient = gradient;
 
 /***/ }),
 
-/***/ "./src/render.ts":
-/*!***********************!*\
-  !*** ./src/render.ts ***!
-  \***********************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-const lib_1 = __webpack_require__(/*! ./lib */ "./src/lib.ts");
-class RenderOption {
-    constructor() {
-        this.width = 600;
-        this.height = 480;
-        this.environmentOptions = new EnvironmentOptions();
-        this.raytraceOptions = new RaytraceOptions();
-        this.viewerOptions = new ViewerOptions();
-        this.antiAlias = true;
-        this.renderOrder = RenderOrder.Progressive;
-        //outputTarget: HTMLCanvasElement = null;
-    }
-}
-exports.RenderOption = RenderOption;
-var SampleFunctions;
-(function (SampleFunctions) {
-    SampleFunctions["JitteredSample"] = "JitteredSample";
-    SampleFunctions["StratifiedSample"] = "StratifiedSample";
-    SampleFunctions["UniformSample"] = "UniformSample";
-})(SampleFunctions || (SampleFunctions = {}));
-exports.SampleFunctions = SampleFunctions;
-var RenderOrder;
-(function (RenderOrder) {
-    RenderOrder[RenderOrder["Progressive"] = 0] = "Progressive";
-})(RenderOrder || (RenderOrder = {}));
-class EnvironmentOptions {
-    constructor() {
-        this.backgroundColor = new lib_1.Color(0, 0, 0, 1.0);
-        this.ambient = new lib_1.Color(0, 0, 0, 1.0);
-    }
-}
-exports.EnvironmentOptions = EnvironmentOptions;
-class RaytraceOptions {
-    constructor() {
-        this.sampleFunction = SampleFunctions.JitteredSample;
-        this.subDivide = 64;
-        this.reflectDepth = 8;
-        this.refrectDepth = 8;
-        this.hitThreshold = 0.1;
-    }
-}
-exports.RaytraceOptions = RaytraceOptions;
-class ViewerOptions {
-    constructor() {
-        this.transform = new lib_1.Matrix3x3();
-    }
-}
-class RenderCmd {
-    constructor(renderOption) {
-        this.renderOption = null;
-        this.buffer = null;
-        this.xRange = null;
-        this.yRange = null;
-        this.renderOption = renderOption;
-    }
-}
-exports.RenderCmd = RenderCmd;
-class RenderState {
-    constructor() {
-        this.progress = 0;
-        this.buffer = null;
-    }
-}
-exports.RenderState = RenderState;
-function startRenderWorker(renderCmd, outputTarget) {
-    //renderCmd.buffer = new Uint8ClampedArray(renderCmd.xRange.length * renderCmd.yRange.length << 2);
-    let worker = new Worker("./build/renderWorker.js");
-    let ctx = outputTarget.getContext("2d");
-    worker.onmessage = (e) => {
-        let state = e.data;
-        let imgData = new ImageData(state.buffer, renderCmd.xRange.size, renderCmd.yRange.size);
-        ctx.putImageData(imgData, renderCmd.xRange.from, renderCmd.yRange.from);
-        if (state.progress >= 1)
-            worker.terminate();
-    };
-    renderCmd.buffer;
-    worker.postMessage(renderCmd, [renderCmd.buffer.buffer]);
-}
-function renderRaytrace(sdf, renderOption, outputTarget) {
-    //outputTarget.width = renderOption.width;
-    //outputTarget.height = renderOption.height;
-    let renderCmd = new RenderCmd(renderOption);
-    renderCmd.xRange = new lib_1.Range(0, renderOption.width);
-    renderCmd.yRange = new lib_1.Range(0, renderOption.height);
-    let imgDta = outputTarget.getContext("2d").getImageData(0, 0, renderOption.width, renderOption.height);
-    renderCmd.buffer = new Uint8ClampedArray(imgDta.data);
-    startRenderWorker(renderCmd, outputTarget);
-}
-exports.renderRaytrace = renderRaytrace;
-function renderSDF(sdf, renderOption, outputTarget) {
-    const width = renderOption.width;
-    const height = renderOption.height;
-    const threshold = 1;
-    outputTarget.width = width;
-    outputTarget.height = height;
-    let ctx = outputTarget.getContext("2d");
-    let buffer = new Uint8ClampedArray(width * height << 2);
-    let imgData = new ImageData(buffer, width, height);
-    for (let y = -height / 2 + 1; y <= height / 2; y++) {
-        for (let x = -width / 2; x < width / 2; x++) {
-            let [dst, mat] = sdf(x, y);
-            let color = renderOption.environmentOptions.backgroundColor;
-            if (dst <= 0)
-                color = mat.emission;
-            else if (dst < threshold) {
-                var t = dst / threshold;
-                color = lib_1.Color.blend(renderOption.environmentOptions.backgroundColor, mat.emission, 1 - t);
-            }
-            drawPixel(imgData, x + width / 2, -y + height / 2, width, height, color);
-        }
-    }
-    ctx.putImageData(imgData, 0, 0);
-}
-exports.renderSDF = renderSDF;
-function drawPixel(imgData, x, y, width, height, color) {
-    //alert(x);
-    let idx = (y * width + x) * 4;
-    imgData.data[idx] = color.red;
-    imgData.data[idx + 1] = color.green;
-    imgData.data[idx + 2] = color.blue;
-    imgData.data[idx + 3] = Math.floor(color.alpha * 255);
-}
-
-
-/***/ }),
-
 /***/ "./src/renderWorker.ts":
 /*!*****************************!*\
   !*** ./src/renderWorker.ts ***!
@@ -502,8 +484,6 @@ function drawPixel(imgData, x, y, width, height, color) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const render_1 = __webpack_require__(/*! ./render */ "./src/render.ts");
-const trace_1 = __webpack_require__(/*! ./trace */ "./src/trace.ts");
 const lib_1 = __webpack_require__(/*! ./lib */ "./src/lib.ts");
 onmessage = (e) => {
     console.log("receive");
@@ -511,9 +491,9 @@ onmessage = (e) => {
     render(renderCmd);
 };
 const SampleFunctions = {
-    JitteredSample: trace_1.jitteredSample,
-    StratifiedSample: trace_1.stratifiedSample,
-    UniformSample: trace_1.uniformSample
+    JitteredSample: jitteredSample,
+    StratifiedSample: stratifiedSample,
+    UniformSample: uniformSample
 };
 function render(renderCmd) {
     renderCmd.xRange = new lib_1.Range(renderCmd.xRange);
@@ -532,97 +512,18 @@ function render(renderCmd) {
             let pos = y * width + x;
             let idx = pos << 2;
             let p = lib_1.Matrix3x3.multipleVector(renderCmd.renderOption.viewerOptions.transform, new lib_1.Vector2(xStart + x, yStart + y));
-            let color = trace_1.sample(renderCmd.sdf, p, sampleFunc, renderCmd.renderOption.raytraceOptions.hitThreshold, renderCmd.renderOption.raytraceOptions.subDivide);
+            let color = sample(renderCmd.sdf, p, sampleFunc, renderCmd.renderOption.raytraceOptions.hitThreshold, renderCmd.renderOption.raytraceOptions.subDivide);
             buffer[idx] = color.red;
             buffer[idx + 1] = color.green;
             buffer[idx + 2] = color.blue;
             buffer[idx + 3] = color.alpha;
         }
-        let state = new render_1.RenderState();
+        let state = new RenderState();
         state.buffer = new Uint8ClampedArray(buffer);
         state.progress = y / height;
         postMessage(state, undefined, [state.buffer.buffer]);
     }
 }
-
-
-/***/ }),
-
-/***/ "./src/trace.ts":
-/*!**********************!*\
-  !*** ./src/trace.ts ***!
-  \**********************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-const lib_1 = __webpack_require__(/*! ./lib */ "./src/lib.ts");
-let BoundX = new lib_1.Range(-500, 500);
-let BoundY = new lib_1.Range(-500, 500);
-function setBound(boundX, boundY) {
-    BoundX = boundX;
-    BoundY = boundY;
-}
-exports.setBound = setBound;
-function trace(sdf, p, dir, precision) {
-    let distance = 0;
-    let material;
-    dir = dir.normalized;
-    do {
-        p = lib_1.plus(p, lib_1.scale(dir, distance));
-        [distance, material] = sdf(p.x, p.y);
-        if (!BoundX.inRange(p.x) || !BoundY.inRange(p.y))
-            return lib_1.vec4(0, 0, 0, 1);
-    } while (distance > precision);
-    return lib_1.vec4(material.emission.red / 255, material.emission.green / 255, material.emission.blue / 255, material.emission.alpha);
-}
-exports.trace = trace;
-/*function antiAlias(sdf: SDF, p: Vector2, colorCallback:Function): Vector4
-{
-    
-}*/
-function sample(sdf, p, sampleFunction, precision, subdiv) {
-    const antiAliasThreshold = 1;
-    let color = lib_1.mapColor(sampleFunction(sdf, p, precision, subdiv), 1 / subdiv);
-    let distance = sdf(p.x, p.y)["0"];
-    if (0 <= distance && distance <= antiAliasThreshold) {
-        let grad = new lib_1.Vector2(lib_1.gradient(sdf, p.x, p.y, 0.1));
-        let pN = lib_1.minus(p, lib_1.scale(grad.normalized, antiAliasThreshold));
-        let colorN = lib_1.mapColor(sampleFunction(sdf, pN, precision, subdiv), 1 / subdiv);
-        return lib_1.Color.blend(colorN, color, distance / antiAliasThreshold);
-    }
-    return color;
-}
-exports.sample = sample;
-function uniformSample(sdf, p, precision, subdiv) {
-    let color = lib_1.vec4(0, 0, 0, 1);
-    for (let i = 0; i < subdiv; i++) {
-        let rad = Math.PI * 2 * Math.random();
-        color = lib_1.plus(trace(sdf, p, lib_1.vec2(Math.cos(rad), Math.sin(rad)), precision), color);
-    }
-    return color;
-}
-exports.uniformSample = uniformSample;
-function stratifiedSample(sdf, p, precision, subdiv) {
-    let color = lib_1.vec4(0, 0, 0, 1);
-    for (let i = 0; i < subdiv; i++) {
-        let rad = Math.PI * 2 * i / subdiv;
-        color = lib_1.plus(trace(sdf, p, lib_1.vec2(Math.cos(rad), Math.sin(rad)), precision), color);
-    }
-    return color;
-}
-exports.stratifiedSample = stratifiedSample;
-function jitteredSample(sdf, p, precision, subdiv) {
-    let color = lib_1.vec4(0, 0, 0, 1);
-    for (let i = 0; i < subdiv; i++) {
-        let rad = Math.PI * 2 * (i + Math.random()) / subdiv;
-        color = lib_1.plus(trace(sdf, p, lib_1.vec2(Math.cos(rad), Math.sin(rad)), precision), color);
-    }
-    return color;
-}
-exports.jitteredSample = jitteredSample;
 
 
 /***/ })

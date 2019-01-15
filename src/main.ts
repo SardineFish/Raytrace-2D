@@ -1,14 +1,14 @@
-import { Color, Range, vec2, Vector4, Material, mapColor, gradient } from "./lib";
+import { Color, Range, vec2, Vector4, Material, mapColor, gradient, Matrix3x3 } from "./lib";
 import { scale, translate, union, rotate, expand, subtract, repeat, displace, blend, wrapSDF, intersect } from "./transform";
 import { circle, rect, torus, belt, capsule } from "./shape";
 import { setBound, uniformSample, stratifiedSample, jitteredSample, sample } from "./trace";
-import { RenderOption, renderSDF, renderRaytrace } from "./render";
+import { RenderOption, renderSDF, renderRaytrace, Renderer } from "./render";
 import { FunctionRecaller } from "./sdf-builder";
 /*type SDFResult = [number, Color];
 type SDF = (x: number, y: number) => SDFResult;*/
-const $ = (selector) => document.querySelector(selector);
-let renderingSDF = (x, y) => NaN;
-let width, height;
+const $ = (selector: string) => document.querySelector(selector);
+let renderingSDF = (x: number, y: number) => NaN;
+let width: number, height: number;
 window.wkr = new Worker("./build/renderWorker.js");
 wkr.onmessage = (e) => {
 	console.log(e);
@@ -18,13 +18,13 @@ testWorker.onmessage = (e) =>
 {
 	console.log(FunctionRecaller.recall(e.data));
 }
-function main(t)
+function main(t?:number)
 {
 	const SubDivide = 64;
 
 	let c = circle(50, new Material(new Color(255, 255, 252, 1.0)));
-	testWorker.postMessage(c.recaller);
-	return;
+	/*testWorker.postMessage(c.recaller);
+	return;*/
 	let c2 = translate(circle(50, new Material(new Color(0, 255, 255, 1.0))), 50, 0);
 	let c3 = translate(circle(10, new Material(new Color(255, 255, 0, 1))), 70, 0);
 	let rec = translate(rect(50, 50, new Material(new Color(255, 0, 0, 1.0))), -0, -200);
@@ -38,12 +38,36 @@ function main(t)
 		c,
 		translate(circle(50, new Material(new Color(255, 0, 0, 1.0))), 50, 0)
 	);
-	console.log(graph.toString());
+	/*console.log(graph.toString());
 	renderingSDF = graph;
 	let renderOption = new RenderOption();
-	renderOption.environmentOptions.backgroundColor = new Color(255, 128, 180, 1.0);
+	renderOption.environment.backgroundColor = new Color(255, 128, 180, 1.0);
 	renderSDF(graph, renderOption, $("#canvas"));
-	renderRaytrace(graph, renderOption, $("#canvas"));
+	renderRaytrace(graph, renderOption, $("#canvas"));*/
+
+	const renderer = new Renderer({
+		environment: {
+			ambient: new Color(0, 0, 0),
+			backgroundColor: new Color(0, 0, 0),
+		},
+		raytrace: {
+			hitThreshold: 0.01,
+			reflectDepth: 8,
+			refrectDepth: 8,
+			sampleFunction: "jittered",
+			subDivide: 64
+		},
+		renderOrder: "progressive",
+		viewport: {
+			size: vec2(800, 600),
+			transform: Matrix3x3.identity
+		},
+		antiAlias: true
+	});
+	var buffer = new Uint8ClampedArray(800 * 600 * 4);
+	renderer.renderSDF(graph, buffer);
+	var imgData = new ImageData(buffer, 800, 600);
+	($("#canvas") as HTMLCanvasElement).getContext("2d").putImageData(imgData, 0, 0);
 	return;
 	visibleRender((x, y) =>
 	{
@@ -168,6 +192,7 @@ function update(delay) {
 function init() {
 	width = window.innerWidth;
 	height = window.innerHeight;
+	document.querySelector
 	$("#canvas").width = width;
 	$("#canvas").height = height;
 	window.onmousemove = (e) => {

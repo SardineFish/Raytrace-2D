@@ -1,5 +1,3 @@
-import { RenderCmd, RenderState } from "./render";
-import { jitteredSample, stratifiedSample, uniformSample, sample } from "./trace";
 import { Range, Matrix3x3, Vector2 } from "./lib";
 
 onmessage = (e) =>
