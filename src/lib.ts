@@ -287,6 +287,9 @@ function vec4(x: number, y: number, z: number, w: number): Vector4
 {
     return new Vector4(x, y, z, w);
 }
+
+function plus(u: Vector2, v: Vector2): Vector2
+function plus(u:Vector4,v:Vector4):Vector4
 function plus(u: Vector4 | Vector2, v: Vector4 | Vector2): Vector4 | Vector2
 {
     if (u instanceof Vector2)
@@ -299,6 +302,8 @@ function plus(u: Vector4 | Vector2, v: Vector4 | Vector2): Vector4 | Vector2
     }
     return new Vector4(u.map((n, i) => n + v[i]));
 }
+function minus(u: Vector2, v: Vector2): Vector2
+function minus(u: Vector4, v: Vector4): Vector4
 function minus(u: Vector4 | Vector2, v: Vector4 | Vector2): Vector4 | Vector2
 {
     if (u instanceof Vector2)
@@ -311,6 +316,8 @@ function minus(u: Vector4 | Vector2, v: Vector4 | Vector2): Vector4 | Vector2
     }
     return new Vector4(u.map((n, i) => n - v[i]));
 }
+function scale(u: Vector2, k: number): Vector2
+function scale(u: Vector4, k: number): Vector4
 function scale(u: Vector4 | Vector2, k: number): Vector4 | Vector2
 {
     if (u instanceof Vector2)

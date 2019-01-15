@@ -53,7 +53,7 @@ function main(t?:number)
 			reflectDepth: 8,
 			refrectDepth: 8,
 			sampleFunction: "jittered",
-			subDivide: 2
+			subDivide: 4
 		},
 		renderOrder: "progressive",
 		viewport: {
