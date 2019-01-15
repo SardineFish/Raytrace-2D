@@ -1,23 +1,21 @@
 import { Color, Range, vec2, Vector4, Material, mapColor, gradient, Matrix3x3 } from "./lib";
-import { scale, translate, union, rotate, expand, subtract, repeat, displace, blend, wrapSDF, intersect } from "./transform";
+import { scale, translate, union, rotate, expand, subtract, displace, blend, wrapSDF, intersect } from "./transform";
 import { circle, rect, torus, belt, capsule } from "./shape";
-import { setBound, uniformSample, stratifiedSample, jitteredSample, sample } from "./trace";
-import { RenderOption, renderSDF, renderRaytrace, Renderer } from "./render";
-import { FunctionRecaller } from "./sdf-builder";
+import { RenderOption, Renderer } from "./render";
 /*type SDFResult = [number, Color];
 type SDF = (x: number, y: number) => SDFResult;*/
 const $ = (selector: string) => document.querySelector(selector);
 let renderingSDF = (x: number, y: number) => NaN;
 let width: number, height: number;
-window.wkr = new Worker("./build/renderWorker.js");
+/*window.wkr = new Worker("./build/renderWorker.js");
 wkr.onmessage = (e) => {
 	console.log(e);
-};
-let testWorker = new Worker("./build/testWorker.js");
+};*/
+/*let testWorker = new Worker("./build/testWorker.js");
 testWorker.onmessage = (e) =>
 {
 	console.log(FunctionRecaller.recall(e.data));
-}
+}*/
 function main(t?:number)
 {
 	const SubDivide = 64;
@@ -69,19 +67,17 @@ function main(t?:number)
 	var imgData = new ImageData(buffer, 800, 600);
 	($("#canvas") as HTMLCanvasElement).getContext("2d").putImageData(imgData, 0, 0);
 	return;
-	visibleRender((x, y) =>
+	/*visibleRender((x, y) =>
 	{
 		/*let [dx, dy] = gradient(graph,x,y,0.1);
 		return new Color(127 + dx * 128, 127 + dy * 128, 0, 1);*/
 		/*let color = jitteredSample(graph, vec2(x, y), 0.1, SubDivide);
-		return mapColor(color, 1 / SubDivide);*/
+		return mapColor(color, 1 / SubDivide);/
 		return sample(graph, vec2(x, y), jitteredSample, 0.1, SubDivide);
-	});
+	});*/
 }
-/**
- * 
- * @param {RenderingCallback} callback 
- */
+
+/*
 function customRender(callback) {
 	const canvas = $("#canvas");
 	const ctx = canvas.getContext("2d");
@@ -122,13 +118,7 @@ function visibleRender(callback) {
 	}
 	update();
 }
-/**
- * 
- * @param {SDF} sdf 
- * @param {Color} fColor 
- * @param {Color} bgColor 
- * @param {Number} [threshold] 
- */
+
 function render(sdf, fColor, bgColor, threshold = 1) {
 	//renderingSDF = sdf;
 	const canvas = $("#canvas");
@@ -152,15 +142,6 @@ function render(sdf, fColor, bgColor, threshold = 1) {
 	}
 	ctx.putImageData(imgData, 0, 0);
 }
-/**
- * 
- * @param {ImageData} imgData 
- * @param {Number} x 
- * @param {Number} y 
- * @param {Number} width 
- * @param {Number} height 
- * @param {Color} color 
- */
 function drawPixel(imgData, x, y, width, height, color) {
 	//alert(x);
 	let idx = (y * width + x) * 4;
@@ -188,7 +169,7 @@ function update(delay) {
 	lastFrame = delay;
 	main(delay / 1000);
 }
-
+*/
 function init() {
 	width = window.innerWidth;
 	height = window.innerHeight;
@@ -198,10 +179,10 @@ function init() {
 	window.onmousemove = (e) => {
 		let x = Math.floor(e.clientX - width / 2);
 		let y = Math.floor(-(e.clientY - height / 2));
-		$("#mouse-pos").innerText = `(${x}, ${y})`;
-		$("#sdf-value").innerText = renderingSDF(x, y)["0"];
+		/*$("#mouse-pos").innerText = `(${x}, ${y})`;
+		$("#sdf-value").innerText = renderingSDF(x, y)["0"];*/
 	}
-	setBound(new Range(-width / 2, width / 2), new Range(-height / 2, height / 2));
+	//setBound(new Range(-width / 2, width / 2), new Range(-height / 2, height / 2));
 }
 window.onload = () => {
 	try {

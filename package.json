@@ -5,6 +5,7 @@
   "main": "script.js",
   "dependencies": {},
   "devDependencies": {
+    "browser-sync": "^2.26.3",
     "ts-loader": "^4.5.0",
     "typescript": "^3.2.2",
     "webpack": "^4.28.4",
@@ -12,6 +13,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx browser-sync start -s -f *.*",
     "build": "npx webpack",
     "build:watch": "npx webpack --watch"
   },
