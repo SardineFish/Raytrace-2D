@@ -90,33 +90,12 @@
 /*!********************!*\
   !*** ./src/lib.ts ***!
   \********************/
-/*! exports provided: Color, max, min, sqrt, abs, length, clamp, smin, vec2, Vector2, Matrix3x3, plus, minus, scale, dot, cross, Vector4, vec4, Range, Material, mapColor, gradient */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Color", function() { return Color; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "max", function() { return max; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "min", function() { return min; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "sqrt", function() { return sqrt; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "abs", function() { return abs; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "length", function() { return length; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "clamp", function() { return clamp; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "smin", function() { return smin; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "vec2", function() { return vec2; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Vector2", function() { return Vector2; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Matrix3x3", function() { return Matrix3x3; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "plus", function() { return plus; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "minus", function() { return minus; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "scale", function() { return scale; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "dot", function() { return dot; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "cross", function() { return cross; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Vector4", function() { return Vector4; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "vec4", function() { return vec4; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Range", function() { return Range; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Material", function() { return Material; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "mapColor", function() { return mapColor; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "gradient", function() { return gradient; });
+
+Object.defineProperty(exports, "__esModule", { value: true });
 class Color {
     constructor(r, g, b, a = 1.0) {
         this.red = 255;
@@ -139,13 +118,21 @@ class Color {
         return `rgba(${this.red}, ${this.green}, ${this.blue}, ${this.alpha})`;
     }
 }
+exports.Color = Color;
 const max = Math.max;
+exports.max = max;
 const min = Math.min;
+exports.min = min;
 const sqrt = Math.sqrt;
+exports.sqrt = sqrt;
 const abs = Math.abs;
+exports.abs = abs;
 const length = (x, y) => sqrt(x * x + y * y);
+exports.length = length;
 const clamp = (n, min, max) => n > max ? max : n < min ? min : n;
+exports.clamp = clamp;
 const smin = (a, b, k) => -Math.log(Math.exp(-k * a) + Math.exp(-k * b)) / k;
+exports.smin = smin;
 class Vector2 extends Array {
     constructor(x, y = 0) {
         super(4);
@@ -178,6 +165,7 @@ class Vector2 extends Array {
         return Math.hypot(this[0], this[1]);
     }
 }
+exports.Vector2 = Vector2;
 class Vector4 extends Array {
     constructor(x, y = 0, z = 0, w = 0) {
         super(4);
@@ -222,12 +210,15 @@ class Vector4 extends Array {
         return new Vector4(u.map(n => n * k));
     }
 }
+exports.Vector4 = Vector4;
 function vec2(x, y) {
     return new Vector2(x, y);
 }
+exports.vec2 = vec2;
 function vec4(x, y, z, w) {
     return new Vector4(x, y, z, w);
 }
+exports.vec4 = vec4;
 function plus(u, v) {
     if (u instanceof Vector2) {
         return new Vector2(u.x + v.x, u.y + v.y);
@@ -237,6 +228,7 @@ function plus(u, v) {
     }
     return new Vector4(u.map((n, i) => n + v[i]));
 }
+exports.plus = plus;
 function minus(u, v) {
     if (u instanceof Vector2) {
         return new Vector2(u.x - v.x, u.y - v.y);
@@ -246,6 +238,7 @@ function minus(u, v) {
     }
     return new Vector4(u.map((n, i) => n - v[i]));
 }
+exports.minus = minus;
 function scale(u, k) {
     if (u instanceof Vector2) {
         return new Vector2(u.x * k, u.y * k);
@@ -254,6 +247,7 @@ function scale(u, k) {
         return new Vector4([u.x * k, u.y * k, u.z * k, u.w * k]);
     }
 }
+exports.scale = scale;
 function dot(u, v) {
     if (u instanceof Vector2) {
         return u.x * v.x + u.y * v.y;
@@ -265,9 +259,11 @@ function dot(u, v) {
             u[3] * v[3];
     }
 }
+exports.dot = dot;
 function cross(u, v) {
     return u.x * v.y - u.y * v.x;
 }
+exports.cross = cross;
 class Range extends Vector2 {
     get from() {
         return this[0];
@@ -292,6 +288,7 @@ class Range extends Vector2 {
         return this.from <= n && n <= this.to;
     }
 }
+exports.Range = Range;
 class Matrix3x3 {
     constructor(mat = null) {
         this[0] = [1, 0, 0];
@@ -333,6 +330,7 @@ class Matrix3x3 {
         return this;
     }
 }
+exports.Matrix3x3 = Matrix3x3;
 class Material {
     constructor(emission = new Color(0, 0, 0, 1.0)) {
         this.diffuseColor = new Color(0, 0, 0, 1.0);
@@ -342,16 +340,18 @@ class Material {
         this.emission = emission;
     }
 }
+exports.Material = Material;
 function mapColor(v, k) {
     return new Color(v.x * k * 255, v.y * k * 255, v.z * k * 255, 1.0);
 }
+exports.mapColor = mapColor;
 function gradient(sdf, x, y, delta) {
     return [
         (sdf(x + delta, y)["0"] - sdf(x - delta, y)["0"]) / (2 * delta),
         (sdf(x, y + delta)["0"] - sdf(x, y - delta)["0"]) / (2 * delta)
     ];
 }
-
+exports.gradient = gradient;
 
 
 /***/ }),
@@ -370,13 +370,19 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "customRender", function() { return customRender; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "visibleRender", function() { return visibleRender; });
 /* harmony import */ var _lib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./lib */ "./src/lib.ts");
+/* harmony import */ var _lib__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_lib__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "mapColor", function() { return _lib__WEBPACK_IMPORTED_MODULE_0__["mapColor"]; });
 
 /* harmony import */ var _transform__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./transform */ "./src/transform.ts");
+/* harmony import */ var _transform__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_transform__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _shape__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./shape */ "./src/shape.ts");
+/* harmony import */ var _shape__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_shape__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var _trace__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./trace */ "./src/trace.ts");
+/* harmony import */ var _trace__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_trace__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var _render__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./render */ "./src/render.ts");
+/* harmony import */ var _render__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_render__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var _sdf_builder__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./sdf-builder */ "./src/sdf-builder.ts");
+/* harmony import */ var _sdf_builder__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_sdf_builder__WEBPACK_IMPORTED_MODULE_5__);
 
 
 
@@ -582,6 +588,7 @@ window.onload = () => {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "moduleHub", function() { return moduleHub; });
 /* harmony import */ var _sdf_builder__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./sdf-builder */ "./src/sdf-builder.ts");
+/* harmony import */ var _sdf_builder__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_sdf_builder__WEBPACK_IMPORTED_MODULE_0__);
 /**
  * To solve the problem cause by Webpack.
  */
@@ -599,21 +606,13 @@ window.moduleHub = {
 /*!***********************!*\
   !*** ./src/render.ts ***!
   \***********************/
-/*! exports provided: RenderOption, SampleFunctions, EnvironmentOptions, RaytraceOptions, RenderCmd, renderRaytrace, renderSDF, RenderState */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RenderOption", function() { return RenderOption; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SampleFunctions", function() { return SampleFunctions; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EnvironmentOptions", function() { return EnvironmentOptions; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RaytraceOptions", function() { return RaytraceOptions; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RenderCmd", function() { return RenderCmd; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderRaytrace", function() { return renderRaytrace; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderSDF", function() { return renderSDF; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RenderState", function() { return RenderState; });
-/* harmony import */ var _lib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./lib */ "./src/lib.ts");
 
+Object.defineProperty(exports, "__esModule", { value: true });
+const lib_1 = __webpack_require__(/*! ./lib */ "./src/lib.ts");
 class RenderOption {
     constructor() {
         this.width = 600;
@@ -626,22 +625,25 @@ class RenderOption {
         //outputTarget: HTMLCanvasElement = null;
     }
 }
+exports.RenderOption = RenderOption;
 var SampleFunctions;
 (function (SampleFunctions) {
     SampleFunctions["JitteredSample"] = "JitteredSample";
     SampleFunctions["StratifiedSample"] = "StratifiedSample";
     SampleFunctions["UniformSample"] = "UniformSample";
 })(SampleFunctions || (SampleFunctions = {}));
+exports.SampleFunctions = SampleFunctions;
 var RenderOrder;
 (function (RenderOrder) {
     RenderOrder[RenderOrder["Progressive"] = 0] = "Progressive";
 })(RenderOrder || (RenderOrder = {}));
 class EnvironmentOptions {
     constructor() {
-        this.backgroundColor = new _lib__WEBPACK_IMPORTED_MODULE_0__["Color"](0, 0, 0, 1.0);
-        this.ambient = new _lib__WEBPACK_IMPORTED_MODULE_0__["Color"](0, 0, 0, 1.0);
+        this.backgroundColor = new lib_1.Color(0, 0, 0, 1.0);
+        this.ambient = new lib_1.Color(0, 0, 0, 1.0);
     }
 }
+exports.EnvironmentOptions = EnvironmentOptions;
 class RaytraceOptions {
     constructor() {
         this.sampleFunction = SampleFunctions.JitteredSample;
@@ -651,9 +653,10 @@ class RaytraceOptions {
         this.hitThreshold = 0.1;
     }
 }
+exports.RaytraceOptions = RaytraceOptions;
 class ViewerOptions {
     constructor() {
-        this.transform = new _lib__WEBPACK_IMPORTED_MODULE_0__["Matrix3x3"]();
+        this.transform = new lib_1.Matrix3x3();
     }
 }
 class RenderCmd {
@@ -665,12 +668,14 @@ class RenderCmd {
         this.renderOption = renderOption;
     }
 }
+exports.RenderCmd = RenderCmd;
 class RenderState {
     constructor() {
         this.progress = 0;
         this.buffer = null;
     }
 }
+exports.RenderState = RenderState;
 function startRenderWorker(renderCmd, outputTarget) {
     //renderCmd.buffer = new Uint8ClampedArray(renderCmd.xRange.length * renderCmd.yRange.length << 2);
     let worker = new Worker("./build/renderWorker.js");
@@ -689,12 +694,13 @@ function renderRaytrace(sdf, renderOption, outputTarget) {
     //outputTarget.width = renderOption.width;
     //outputTarget.height = renderOption.height;
     let renderCmd = new RenderCmd(renderOption);
-    renderCmd.xRange = new _lib__WEBPACK_IMPORTED_MODULE_0__["Range"](0, renderOption.width);
-    renderCmd.yRange = new _lib__WEBPACK_IMPORTED_MODULE_0__["Range"](0, renderOption.height);
+    renderCmd.xRange = new lib_1.Range(0, renderOption.width);
+    renderCmd.yRange = new lib_1.Range(0, renderOption.height);
     let imgDta = outputTarget.getContext("2d").getImageData(0, 0, renderOption.width, renderOption.height);
     renderCmd.buffer = new Uint8ClampedArray(imgDta.data);
     startRenderWorker(renderCmd, outputTarget);
 }
+exports.renderRaytrace = renderRaytrace;
 function renderSDF(sdf, renderOption, outputTarget) {
     const width = renderOption.width;
     const height = renderOption.height;
@@ -712,13 +718,14 @@ function renderSDF(sdf, renderOption, outputTarget) {
                 color = mat.emission;
             else if (dst < threshold) {
                 var t = dst / threshold;
-                color = _lib__WEBPACK_IMPORTED_MODULE_0__["Color"].blend(renderOption.environmentOptions.backgroundColor, mat.emission, 1 - t);
+                color = lib_1.Color.blend(renderOption.environmentOptions.backgroundColor, mat.emission, 1 - t);
             }
             drawPixel(imgData, x + width / 2, -y + height / 2, width, height, color);
         }
     }
     ctx.putImageData(imgData, 0, 0);
 }
+exports.renderSDF = renderSDF;
 function drawPixel(imgData, x, y, width, height, color) {
     //alert(x);
     let idx = (y * width + x) * 4;
@@ -729,29 +736,26 @@ function drawPixel(imgData, x, y, width, height, color) {
 }
 
 
-
 /***/ }),
 
 /***/ "./src/sdf-builder.ts":
 /*!****************************!*\
   !*** ./src/sdf-builder.ts ***!
   \****************************/
-/*! exports provided: FunctionRecaller, BuildSDF */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FunctionRecaller", function() { return FunctionRecaller; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BuildSDF", function() { return BuildSDF; });
-/* harmony import */ var _lib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./lib */ "./src/lib.ts");
-/* harmony import */ var _module_hub__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./module-hub */ "./src/module-hub.js");
 
-
-var _force_import = [_lib__WEBPACK_IMPORTED_MODULE_0__["Material"], _lib__WEBPACK_IMPORTED_MODULE_0__["sqrt"], _lib__WEBPACK_IMPORTED_MODULE_0__["min"], _lib__WEBPACK_IMPORTED_MODULE_0__["max"], _lib__WEBPACK_IMPORTED_MODULE_0__["length"], _lib__WEBPACK_IMPORTED_MODULE_0__["abs"], _lib__WEBPACK_IMPORTED_MODULE_0__["clamp"], _lib__WEBPACK_IMPORTED_MODULE_0__["smin"], _lib__WEBPACK_IMPORTED_MODULE_0__["Color"], _module_hub__WEBPACK_IMPORTED_MODULE_1__["moduleHub"]];
+Object.defineProperty(exports, "__esModule", { value: true });
+const lib_1 = __webpack_require__(/*! ./lib */ "./src/lib.ts");
+const module_hub_1 = __webpack_require__(/*! ./module-hub */ "./src/module-hub.js");
+var _force_import = [lib_1.Material, lib_1.sqrt, lib_1.min, lib_1.max, lib_1.length, lib_1.abs, lib_1.clamp, lib_1.smin, lib_1.Color, module_hub_1.moduleHub];
 function BuildSDF(sdf, builder, args) {
     sdf.recaller = new FunctionRecaller(builder, args);
     return sdf;
 }
+exports.BuildSDF = BuildSDF;
 class FunctionRecaller {
     constructor(func, args) {
         this.isRecaller = true;
@@ -770,7 +774,7 @@ class FunctionRecaller {
         return FunctionRecaller.recall(this);
     }
 }
-
+exports.FunctionRecaller = FunctionRecaller;
 
 
 /***/ }),
@@ -779,20 +783,14 @@ class FunctionRecaller {
 /*!**********************!*\
   !*** ./src/shape.ts ***!
   \**********************/
-/*! exports provided: circle, rect, torus, belt, capsule */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "circle", function() { return circle; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "rect", function() { return rect; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "torus", function() { return torus; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "belt", function() { return belt; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "capsule", function() { return capsule; });
-/* harmony import */ var _lib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./lib */ "./src/lib.ts");
-/* harmony import */ var _sdf_builder__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./sdf-builder */ "./src/sdf-builder.ts");
 
-
+Object.defineProperty(exports, "__esModule", { value: true });
+const lib_1 = __webpack_require__(/*! ./lib */ "./src/lib.ts");
+const sdf_builder_1 = __webpack_require__(/*! ./sdf-builder */ "./src/sdf-builder.ts");
 /**
  *
  * @param {Number} r - radius
@@ -801,8 +799,9 @@ __webpack_require__.r(__webpack_exports__);
  */
 function circle(r, material) {
     //return (x, y) => [sqrt(x * x + y * y) - r, material];
-    return Object(_sdf_builder__WEBPACK_IMPORTED_MODULE_1__["BuildSDF"])((x, y) => [Object(_lib__WEBPACK_IMPORTED_MODULE_0__["sqrt"])(x * x + y * y) - r, material], circle, [r, material]);
+    return sdf_builder_1.BuildSDF((x, y) => [lib_1.sqrt(x * x + y * y) - r, material], circle, [r, material]);
 }
+exports.circle = circle;
 /**
  *
  * @param {Number} w - Width of rectangle
@@ -814,9 +813,10 @@ function rect(w, h, material) {
     return (x, y) => {
         const dx = Math.abs(x) - w / 2;
         const dy = Math.abs(y) - h / 2;
-        return [Object(_lib__WEBPACK_IMPORTED_MODULE_0__["min"])(Object(_lib__WEBPACK_IMPORTED_MODULE_0__["max"])(dx, dy), 0) + Object(_lib__WEBPACK_IMPORTED_MODULE_0__["length"])(Object(_lib__WEBPACK_IMPORTED_MODULE_0__["max"])(dx, 0), Object(_lib__WEBPACK_IMPORTED_MODULE_0__["max"])(dy, 0)), material];
+        return [lib_1.min(lib_1.max(dx, dy), 0) + lib_1.length(lib_1.max(dx, 0), lib_1.max(dy, 0)), material];
     };
 }
+exports.rect = rect;
 /**
  *
  * @param {Number} rOuter - Outer radius
@@ -828,10 +828,11 @@ function torus(rOuter, rInner, material) {
     const mid = (rOuter + rInner) / 2;
     const wide = (rOuter - rInner) / 2;
     return (x, y) => {
-        const l = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["length"])(x, y);
-        return [Object(_lib__WEBPACK_IMPORTED_MODULE_0__["abs"])(l - mid) - wide, material];
+        const l = lib_1.length(x, y);
+        return [lib_1.abs(l - mid) - wide, material];
     };
 }
+exports.torus = torus;
 /**
  *
  * @param {Number} wide - Width of the belt
@@ -841,6 +842,7 @@ function torus(rOuter, rInner, material) {
 function belt(wide, material) {
     return (x, y) => [y - wide / 2, material];
 }
+exports.belt = belt;
 /**
  *
  * @param {Number} l - Length between two center of semi-circle
@@ -851,11 +853,11 @@ function belt(wide, material) {
 function capsule(l, radius, material) {
     const half = l / 2;
     return (x, y) => {
-        const dx = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["abs"])(x) - half;
-        return [Object(_lib__WEBPACK_IMPORTED_MODULE_0__["length"])(Object(_lib__WEBPACK_IMPORTED_MODULE_0__["clamp"])(dx, 0, Object(_lib__WEBPACK_IMPORTED_MODULE_0__["abs"])(dx)), y) - radius, material];
+        const dx = lib_1.abs(x) - half;
+        return [lib_1.length(lib_1.clamp(dx, 0, lib_1.abs(dx)), y) - radius, material];
     };
 }
-
+exports.capsule = capsule;
 
 
 /***/ }),
@@ -864,78 +866,77 @@ function capsule(l, radius, material) {
 /*!**********************!*\
   !*** ./src/trace.ts ***!
   \**********************/
-/*! exports provided: trace, setBound, uniformSample, stratifiedSample, jitteredSample, sample */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "trace", function() { return trace; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setBound", function() { return setBound; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "uniformSample", function() { return uniformSample; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "stratifiedSample", function() { return stratifiedSample; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "jitteredSample", function() { return jitteredSample; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "sample", function() { return sample; });
-/* harmony import */ var _lib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./lib */ "./src/lib.ts");
 
-let BoundX = new _lib__WEBPACK_IMPORTED_MODULE_0__["Range"](-500, 500);
-let BoundY = new _lib__WEBPACK_IMPORTED_MODULE_0__["Range"](-500, 500);
+Object.defineProperty(exports, "__esModule", { value: true });
+const lib_1 = __webpack_require__(/*! ./lib */ "./src/lib.ts");
+let BoundX = new lib_1.Range(-500, 500);
+let BoundY = new lib_1.Range(-500, 500);
 function setBound(boundX, boundY) {
     BoundX = boundX;
     BoundY = boundY;
 }
+exports.setBound = setBound;
 function trace(sdf, p, dir, precision) {
     let distance = 0;
     let material;
     dir = dir.normalized;
     do {
-        p = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["plus"])(p, Object(_lib__WEBPACK_IMPORTED_MODULE_0__["scale"])(dir, distance));
+        p = lib_1.plus(p, lib_1.scale(dir, distance));
         [distance, material] = sdf(p.x, p.y);
         if (!BoundX.inRange(p.x) || !BoundY.inRange(p.y))
-            return Object(_lib__WEBPACK_IMPORTED_MODULE_0__["vec4"])(0, 0, 0, 1);
+            return lib_1.vec4(0, 0, 0, 1);
     } while (distance > precision);
-    return Object(_lib__WEBPACK_IMPORTED_MODULE_0__["vec4"])(material.emission.red / 255, material.emission.green / 255, material.emission.blue / 255, material.emission.alpha);
+    return lib_1.vec4(material.emission.red / 255, material.emission.green / 255, material.emission.blue / 255, material.emission.alpha);
 }
+exports.trace = trace;
 /*function antiAlias(sdf: SDF, p: Vector2, colorCallback:Function): Vector4
 {
     
 }*/
 function sample(sdf, p, sampleFunction, precision, subdiv) {
     const antiAliasThreshold = 1;
-    let color = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["mapColor"])(sampleFunction(sdf, p, precision, subdiv), 1 / subdiv);
+    let color = lib_1.mapColor(sampleFunction(sdf, p, precision, subdiv), 1 / subdiv);
     let distance = sdf(p.x, p.y)["0"];
     if (0 <= distance && distance <= antiAliasThreshold) {
-        let grad = new _lib__WEBPACK_IMPORTED_MODULE_0__["Vector2"](Object(_lib__WEBPACK_IMPORTED_MODULE_0__["gradient"])(sdf, p.x, p.y, 0.1));
-        let pN = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["minus"])(p, Object(_lib__WEBPACK_IMPORTED_MODULE_0__["scale"])(grad.normalized, antiAliasThreshold));
-        let colorN = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["mapColor"])(sampleFunction(sdf, pN, precision, subdiv), 1 / subdiv);
-        return _lib__WEBPACK_IMPORTED_MODULE_0__["Color"].blend(colorN, color, distance / antiAliasThreshold);
+        let grad = new lib_1.Vector2(lib_1.gradient(sdf, p.x, p.y, 0.1));
+        let pN = lib_1.minus(p, lib_1.scale(grad.normalized, antiAliasThreshold));
+        let colorN = lib_1.mapColor(sampleFunction(sdf, pN, precision, subdiv), 1 / subdiv);
+        return lib_1.Color.blend(colorN, color, distance / antiAliasThreshold);
     }
     return color;
 }
+exports.sample = sample;
 function uniformSample(sdf, p, precision, subdiv) {
-    let color = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["vec4"])(0, 0, 0, 1);
+    let color = lib_1.vec4(0, 0, 0, 1);
     for (let i = 0; i < subdiv; i++) {
         let rad = Math.PI * 2 * Math.random();
-        color = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["plus"])(trace(sdf, p, Object(_lib__WEBPACK_IMPORTED_MODULE_0__["vec2"])(Math.cos(rad), Math.sin(rad)), precision), color);
+        color = lib_1.plus(trace(sdf, p, lib_1.vec2(Math.cos(rad), Math.sin(rad)), precision), color);
     }
     return color;
 }
+exports.uniformSample = uniformSample;
 function stratifiedSample(sdf, p, precision, subdiv) {
-    let color = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["vec4"])(0, 0, 0, 1);
+    let color = lib_1.vec4(0, 0, 0, 1);
     for (let i = 0; i < subdiv; i++) {
         let rad = Math.PI * 2 * i / subdiv;
-        color = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["plus"])(trace(sdf, p, Object(_lib__WEBPACK_IMPORTED_MODULE_0__["vec2"])(Math.cos(rad), Math.sin(rad)), precision), color);
+        color = lib_1.plus(trace(sdf, p, lib_1.vec2(Math.cos(rad), Math.sin(rad)), precision), color);
     }
     return color;
 }
+exports.stratifiedSample = stratifiedSample;
 function jitteredSample(sdf, p, precision, subdiv) {
-    let color = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["vec4"])(0, 0, 0, 1);
+    let color = lib_1.vec4(0, 0, 0, 1);
     for (let i = 0; i < subdiv; i++) {
         let rad = Math.PI * 2 * (i + Math.random()) / subdiv;
-        color = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["plus"])(trace(sdf, p, Object(_lib__WEBPACK_IMPORTED_MODULE_0__["vec2"])(Math.cos(rad), Math.sin(rad)), precision), color);
+        color = lib_1.plus(trace(sdf, p, lib_1.vec2(Math.cos(rad), Math.sin(rad)), precision), color);
     }
     return color;
 }
-
+exports.jitteredSample = jitteredSample;
 
 
 /***/ }),
@@ -944,23 +945,13 @@ function jitteredSample(sdf, p, precision, subdiv) {
 /*!**************************!*\
   !*** ./src/transform.ts ***!
   \**************************/
-/*! exports provided: translate, union, scale, rotate, expand, subtract, displace, blend, wrapSDF, intersect */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "translate", function() { return translate; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "union", function() { return union; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "scale", function() { return scale; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "rotate", function() { return rotate; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "expand", function() { return expand; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "subtract", function() { return subtract; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "displace", function() { return displace; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "blend", function() { return blend; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "wrapSDF", function() { return wrapSDF; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "intersect", function() { return intersect; });
-/* harmony import */ var _lib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./lib */ "./src/lib.ts");
 
+Object.defineProperty(exports, "__esModule", { value: true });
+const lib_1 = __webpack_require__(/*! ./lib */ "./src/lib.ts");
 /**
  *
  * @param {SDF} sdf
@@ -979,6 +970,7 @@ function translate(sdf, dx, dy) {
     };
     return f;
 }
+exports.translate = translate;
 /**
  *
  * @param {SDF} sdf
@@ -999,6 +991,7 @@ function scale(sdf, kx, ky) {
     };
     return f;
 }
+exports.scale = scale;
 /**
  *
  * @param {SDF} sdf
@@ -1018,6 +1011,7 @@ function rotate(sdf, rad) {
     };
     return f;
 }
+exports.rotate = rotate;
 /**
  *
  * @param {SDF} sdf1
@@ -1050,6 +1044,7 @@ function union(sdf1, sdf2) {
     };
     return f;
 }
+exports.union = union;
 /**
  *
  * @param {SDF} sdf1
@@ -1067,6 +1062,7 @@ function subtract(sdf1, sdf2) {
             return [d2, c1];
     };
 }
+exports.subtract = subtract;
 /**
  *
  * @param {SDF} sdf1
@@ -1083,6 +1079,7 @@ function intersect(sdf1, sdf2) {
             return [d2, c2];
     };
 }
+exports.intersect = intersect;
 /**
  *
  * @param {SDF} sdf
@@ -1095,6 +1092,7 @@ function expand(sdf, radius) {
         return [d - radius, c];
     };
 }
+exports.expand = expand;
 /*
 function repeat(sdf:SDF, dx, dy = dx, ox = 0, oy = 0)
 {
@@ -1110,6 +1108,7 @@ function displace(sdf1, sdf2) {
     const m = sdf1(0, 0)["1"];
     return (x, y) => [sdf1(x, y)["0"] + sdf2(x, y)["0"], m];
 }
+exports.displace = displace;
 /**
  *
  * @param {SDF} sdf1
@@ -1120,10 +1119,11 @@ function displace(sdf1, sdf2) {
 function blend(sdf1, sdf2, k) {
     const material1 = sdf1(0, 0)["1"];
     const material2 = sdf2(0, 0)["1"];
-    const material = new _lib__WEBPACK_IMPORTED_MODULE_0__["Material"]();
-    material.emission = new _lib__WEBPACK_IMPORTED_MODULE_0__["Color"](Object(_lib__WEBPACK_IMPORTED_MODULE_0__["smin"])(material1.emission.red, material2.emission.red, k), Object(_lib__WEBPACK_IMPORTED_MODULE_0__["smin"])(material1.emission.green, material2.emission.green, k), Object(_lib__WEBPACK_IMPORTED_MODULE_0__["smin"])(material1.emission.blue, material2.emission.blue, k), Object(_lib__WEBPACK_IMPORTED_MODULE_0__["smin"])(material1.emission.alpha, material2.emission.alpha, k));
-    return (x, y) => [Object(_lib__WEBPACK_IMPORTED_MODULE_0__["smin"])(sdf1(x, y)["0"], sdf2(x, y)["0"], k), material];
+    const material = new lib_1.Material();
+    material.emission = new lib_1.Color(lib_1.smin(material1.emission.red, material2.emission.red, k), lib_1.smin(material1.emission.green, material2.emission.green, k), lib_1.smin(material1.emission.blue, material2.emission.blue, k), lib_1.smin(material1.emission.alpha, material2.emission.alpha, k));
+    return (x, y) => [lib_1.smin(sdf1(x, y)["0"], sdf2(x, y)["0"], k), material];
 }
+exports.blend = blend;
 /**
  *
  * @param sdf - The SDF function
@@ -1132,7 +1132,7 @@ function blend(sdf1, sdf2, k) {
 function wrapSDF(sdf, material) {
     return (x, y) => [sdf(x, y)["0"], material];
 }
-
+exports.wrapSDF = wrapSDF;
 
 
 /***/ })

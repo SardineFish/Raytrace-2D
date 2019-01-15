@@ -90,33 +90,12 @@
 /*!********************!*\
   !*** ./src/lib.ts ***!
   \********************/
-/*! exports provided: Color, max, min, sqrt, abs, length, clamp, smin, vec2, Vector2, Matrix3x3, plus, minus, scale, dot, cross, Vector4, vec4, Range, Material, mapColor, gradient */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Color", function() { return Color; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "max", function() { return max; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "min", function() { return min; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "sqrt", function() { return sqrt; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "abs", function() { return abs; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "length", function() { return length; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "clamp", function() { return clamp; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "smin", function() { return smin; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "vec2", function() { return vec2; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Vector2", function() { return Vector2; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Matrix3x3", function() { return Matrix3x3; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "plus", function() { return plus; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "minus", function() { return minus; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "scale", function() { return scale; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "dot", function() { return dot; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "cross", function() { return cross; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Vector4", function() { return Vector4; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "vec4", function() { return vec4; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Range", function() { return Range; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Material", function() { return Material; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "mapColor", function() { return mapColor; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "gradient", function() { return gradient; });
+
+Object.defineProperty(exports, "__esModule", { value: true });
 class Color {
     constructor(r, g, b, a = 1.0) {
         this.red = 255;
@@ -139,13 +118,21 @@ class Color {
         return `rgba(${this.red}, ${this.green}, ${this.blue}, ${this.alpha})`;
     }
 }
+exports.Color = Color;
 const max = Math.max;
+exports.max = max;
 const min = Math.min;
+exports.min = min;
 const sqrt = Math.sqrt;
+exports.sqrt = sqrt;
 const abs = Math.abs;
+exports.abs = abs;
 const length = (x, y) => sqrt(x * x + y * y);
+exports.length = length;
 const clamp = (n, min, max) => n > max ? max : n < min ? min : n;
+exports.clamp = clamp;
 const smin = (a, b, k) => -Math.log(Math.exp(-k * a) + Math.exp(-k * b)) / k;
+exports.smin = smin;
 class Vector2 extends Array {
     constructor(x, y = 0) {
         super(4);
@@ -178,6 +165,7 @@ class Vector2 extends Array {
         return Math.hypot(this[0], this[1]);
     }
 }
+exports.Vector2 = Vector2;
 class Vector4 extends Array {
     constructor(x, y = 0, z = 0, w = 0) {
         super(4);
@@ -222,12 +210,15 @@ class Vector4 extends Array {
         return new Vector4(u.map(n => n * k));
     }
 }
+exports.Vector4 = Vector4;
 function vec2(x, y) {
     return new Vector2(x, y);
 }
+exports.vec2 = vec2;
 function vec4(x, y, z, w) {
     return new Vector4(x, y, z, w);
 }
+exports.vec4 = vec4;
 function plus(u, v) {
     if (u instanceof Vector2) {
         return new Vector2(u.x + v.x, u.y + v.y);
@@ -237,6 +228,7 @@ function plus(u, v) {
     }
     return new Vector4(u.map((n, i) => n + v[i]));
 }
+exports.plus = plus;
 function minus(u, v) {
     if (u instanceof Vector2) {
         return new Vector2(u.x - v.x, u.y - v.y);
@@ -246,6 +238,7 @@ function minus(u, v) {
     }
     return new Vector4(u.map((n, i) => n - v[i]));
 }
+exports.minus = minus;
 function scale(u, k) {
     if (u instanceof Vector2) {
         return new Vector2(u.x * k, u.y * k);
@@ -254,6 +247,7 @@ function scale(u, k) {
         return new Vector4([u.x * k, u.y * k, u.z * k, u.w * k]);
     }
 }
+exports.scale = scale;
 function dot(u, v) {
     if (u instanceof Vector2) {
         return u.x * v.x + u.y * v.y;
@@ -265,9 +259,11 @@ function dot(u, v) {
             u[3] * v[3];
     }
 }
+exports.dot = dot;
 function cross(u, v) {
     return u.x * v.y - u.y * v.x;
 }
+exports.cross = cross;
 class Range extends Vector2 {
     get from() {
         return this[0];
@@ -292,6 +288,7 @@ class Range extends Vector2 {
         return this.from <= n && n <= this.to;
     }
 }
+exports.Range = Range;
 class Matrix3x3 {
     constructor(mat = null) {
         this[0] = [1, 0, 0];
@@ -333,6 +330,7 @@ class Matrix3x3 {
         return this;
     }
 }
+exports.Matrix3x3 = Matrix3x3;
 class Material {
     constructor(emission = new Color(0, 0, 0, 1.0)) {
         this.diffuseColor = new Color(0, 0, 0, 1.0);
@@ -342,16 +340,18 @@ class Material {
         this.emission = emission;
     }
 }
+exports.Material = Material;
 function mapColor(v, k) {
     return new Color(v.x * k * 255, v.y * k * 255, v.z * k * 255, 1.0);
 }
+exports.mapColor = mapColor;
 function gradient(sdf, x, y, delta) {
     return [
         (sdf(x + delta, y)["0"] - sdf(x - delta, y)["0"]) / (2 * delta),
         (sdf(x, y + delta)["0"] - sdf(x, y - delta)["0"]) / (2 * delta)
     ];
 }
-
+exports.gradient = gradient;
 
 
 /***/ }),
@@ -360,21 +360,13 @@ function gradient(sdf, x, y, delta) {
 /*!***********************!*\
   !*** ./src/render.ts ***!
   \***********************/
-/*! exports provided: RenderOption, SampleFunctions, EnvironmentOptions, RaytraceOptions, RenderCmd, renderRaytrace, renderSDF, RenderState */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RenderOption", function() { return RenderOption; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SampleFunctions", function() { return SampleFunctions; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EnvironmentOptions", function() { return EnvironmentOptions; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RaytraceOptions", function() { return RaytraceOptions; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RenderCmd", function() { return RenderCmd; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderRaytrace", function() { return renderRaytrace; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderSDF", function() { return renderSDF; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RenderState", function() { return RenderState; });
-/* harmony import */ var _lib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./lib */ "./src/lib.ts");
 
+Object.defineProperty(exports, "__esModule", { value: true });
+const lib_1 = __webpack_require__(/*! ./lib */ "./src/lib.ts");
 class RenderOption {
     constructor() {
         this.width = 600;
@@ -387,22 +379,25 @@ class RenderOption {
         //outputTarget: HTMLCanvasElement = null;
     }
 }
+exports.RenderOption = RenderOption;
 var SampleFunctions;
 (function (SampleFunctions) {
     SampleFunctions["JitteredSample"] = "JitteredSample";
     SampleFunctions["StratifiedSample"] = "StratifiedSample";
     SampleFunctions["UniformSample"] = "UniformSample";
 })(SampleFunctions || (SampleFunctions = {}));
+exports.SampleFunctions = SampleFunctions;
 var RenderOrder;
 (function (RenderOrder) {
     RenderOrder[RenderOrder["Progressive"] = 0] = "Progressive";
 })(RenderOrder || (RenderOrder = {}));
 class EnvironmentOptions {
     constructor() {
-        this.backgroundColor = new _lib__WEBPACK_IMPORTED_MODULE_0__["Color"](0, 0, 0, 1.0);
-        this.ambient = new _lib__WEBPACK_IMPORTED_MODULE_0__["Color"](0, 0, 0, 1.0);
+        this.backgroundColor = new lib_1.Color(0, 0, 0, 1.0);
+        this.ambient = new lib_1.Color(0, 0, 0, 1.0);
     }
 }
+exports.EnvironmentOptions = EnvironmentOptions;
 class RaytraceOptions {
     constructor() {
         this.sampleFunction = SampleFunctions.JitteredSample;
@@ -412,9 +407,10 @@ class RaytraceOptions {
         this.hitThreshold = 0.1;
     }
 }
+exports.RaytraceOptions = RaytraceOptions;
 class ViewerOptions {
     constructor() {
-        this.transform = new _lib__WEBPACK_IMPORTED_MODULE_0__["Matrix3x3"]();
+        this.transform = new lib_1.Matrix3x3();
     }
 }
 class RenderCmd {
@@ -426,12 +422,14 @@ class RenderCmd {
         this.renderOption = renderOption;
     }
 }
+exports.RenderCmd = RenderCmd;
 class RenderState {
     constructor() {
         this.progress = 0;
         this.buffer = null;
     }
 }
+exports.RenderState = RenderState;
 function startRenderWorker(renderCmd, outputTarget) {
     //renderCmd.buffer = new Uint8ClampedArray(renderCmd.xRange.length * renderCmd.yRange.length << 2);
     let worker = new Worker("./build/renderWorker.js");
@@ -450,12 +448,13 @@ function renderRaytrace(sdf, renderOption, outputTarget) {
     //outputTarget.width = renderOption.width;
     //outputTarget.height = renderOption.height;
     let renderCmd = new RenderCmd(renderOption);
-    renderCmd.xRange = new _lib__WEBPACK_IMPORTED_MODULE_0__["Range"](0, renderOption.width);
-    renderCmd.yRange = new _lib__WEBPACK_IMPORTED_MODULE_0__["Range"](0, renderOption.height);
+    renderCmd.xRange = new lib_1.Range(0, renderOption.width);
+    renderCmd.yRange = new lib_1.Range(0, renderOption.height);
     let imgDta = outputTarget.getContext("2d").getImageData(0, 0, renderOption.width, renderOption.height);
     renderCmd.buffer = new Uint8ClampedArray(imgDta.data);
     startRenderWorker(renderCmd, outputTarget);
 }
+exports.renderRaytrace = renderRaytrace;
 function renderSDF(sdf, renderOption, outputTarget) {
     const width = renderOption.width;
     const height = renderOption.height;
@@ -473,13 +472,14 @@ function renderSDF(sdf, renderOption, outputTarget) {
                 color = mat.emission;
             else if (dst < threshold) {
                 var t = dst / threshold;
-                color = _lib__WEBPACK_IMPORTED_MODULE_0__["Color"].blend(renderOption.environmentOptions.backgroundColor, mat.emission, 1 - t);
+                color = lib_1.Color.blend(renderOption.environmentOptions.backgroundColor, mat.emission, 1 - t);
             }
             drawPixel(imgData, x + width / 2, -y + height / 2, width, height, color);
         }
     }
     ctx.putImageData(imgData, 0, 0);
 }
+exports.renderSDF = renderSDF;
 function drawPixel(imgData, x, y, width, height, color) {
     //alert(x);
     let idx = (y * width + x) * 4;
@@ -490,37 +490,34 @@ function drawPixel(imgData, x, y, width, height, color) {
 }
 
 
-
 /***/ }),
 
 /***/ "./src/renderWorker.ts":
 /*!*****************************!*\
   !*** ./src/renderWorker.ts ***!
   \*****************************/
-/*! no exports provided */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _render__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./render */ "./src/render.ts");
-/* harmony import */ var _trace__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./trace */ "./src/trace.ts");
-/* harmony import */ var _lib__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./lib */ "./src/lib.ts");
 
-
-
+Object.defineProperty(exports, "__esModule", { value: true });
+const render_1 = __webpack_require__(/*! ./render */ "./src/render.ts");
+const trace_1 = __webpack_require__(/*! ./trace */ "./src/trace.ts");
+const lib_1 = __webpack_require__(/*! ./lib */ "./src/lib.ts");
 onmessage = (e) => {
     console.log("receive");
     let renderCmd = e.data;
     render(renderCmd);
 };
 const SampleFunctions = {
-    JitteredSample: _trace__WEBPACK_IMPORTED_MODULE_1__["jitteredSample"],
-    StratifiedSample: _trace__WEBPACK_IMPORTED_MODULE_1__["stratifiedSample"],
-    UniformSample: _trace__WEBPACK_IMPORTED_MODULE_1__["uniformSample"]
+    JitteredSample: trace_1.jitteredSample,
+    StratifiedSample: trace_1.stratifiedSample,
+    UniformSample: trace_1.uniformSample
 };
 function render(renderCmd) {
-    renderCmd.xRange = new _lib__WEBPACK_IMPORTED_MODULE_2__["Range"](renderCmd.xRange);
-    renderCmd.yRange = new _lib__WEBPACK_IMPORTED_MODULE_2__["Range"](renderCmd.yRange);
+    renderCmd.xRange = new lib_1.Range(renderCmd.xRange);
+    renderCmd.yRange = new lib_1.Range(renderCmd.yRange);
     let xStart = renderCmd.xRange.from;
     let xEnd = renderCmd.xRange.to;
     let yStart = renderCmd.yRange.from;
@@ -534,14 +531,14 @@ function render(renderCmd) {
         for (let x = 0; x < width; x++) {
             let pos = y * width + x;
             let idx = pos << 2;
-            let p = _lib__WEBPACK_IMPORTED_MODULE_2__["Matrix3x3"].multipleVector(renderCmd.renderOption.viewerOptions.transform, new _lib__WEBPACK_IMPORTED_MODULE_2__["Vector2"](xStart + x, yStart + y));
-            let color = Object(_trace__WEBPACK_IMPORTED_MODULE_1__["sample"])(renderCmd.sdf, p, sampleFunc, renderCmd.renderOption.raytraceOptions.hitThreshold, renderCmd.renderOption.raytraceOptions.subDivide);
+            let p = lib_1.Matrix3x3.multipleVector(renderCmd.renderOption.viewerOptions.transform, new lib_1.Vector2(xStart + x, yStart + y));
+            let color = trace_1.sample(renderCmd.sdf, p, sampleFunc, renderCmd.renderOption.raytraceOptions.hitThreshold, renderCmd.renderOption.raytraceOptions.subDivide);
             buffer[idx] = color.red;
             buffer[idx + 1] = color.green;
             buffer[idx + 2] = color.blue;
             buffer[idx + 3] = color.alpha;
         }
-        let state = new _render__WEBPACK_IMPORTED_MODULE_0__["RenderState"]();
+        let state = new render_1.RenderState();
         state.buffer = new Uint8ClampedArray(buffer);
         state.progress = y / height;
         postMessage(state, undefined, [state.buffer.buffer]);
@@ -555,78 +552,77 @@ function render(renderCmd) {
 /*!**********************!*\
   !*** ./src/trace.ts ***!
   \**********************/
-/*! exports provided: trace, setBound, uniformSample, stratifiedSample, jitteredSample, sample */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "trace", function() { return trace; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setBound", function() { return setBound; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "uniformSample", function() { return uniformSample; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "stratifiedSample", function() { return stratifiedSample; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "jitteredSample", function() { return jitteredSample; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "sample", function() { return sample; });
-/* harmony import */ var _lib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./lib */ "./src/lib.ts");
 
-let BoundX = new _lib__WEBPACK_IMPORTED_MODULE_0__["Range"](-500, 500);
-let BoundY = new _lib__WEBPACK_IMPORTED_MODULE_0__["Range"](-500, 500);
+Object.defineProperty(exports, "__esModule", { value: true });
+const lib_1 = __webpack_require__(/*! ./lib */ "./src/lib.ts");
+let BoundX = new lib_1.Range(-500, 500);
+let BoundY = new lib_1.Range(-500, 500);
 function setBound(boundX, boundY) {
     BoundX = boundX;
     BoundY = boundY;
 }
+exports.setBound = setBound;
 function trace(sdf, p, dir, precision) {
     let distance = 0;
     let material;
     dir = dir.normalized;
     do {
-        p = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["plus"])(p, Object(_lib__WEBPACK_IMPORTED_MODULE_0__["scale"])(dir, distance));
+        p = lib_1.plus(p, lib_1.scale(dir, distance));
         [distance, material] = sdf(p.x, p.y);
         if (!BoundX.inRange(p.x) || !BoundY.inRange(p.y))
-            return Object(_lib__WEBPACK_IMPORTED_MODULE_0__["vec4"])(0, 0, 0, 1);
+            return lib_1.vec4(0, 0, 0, 1);
     } while (distance > precision);
-    return Object(_lib__WEBPACK_IMPORTED_MODULE_0__["vec4"])(material.emission.red / 255, material.emission.green / 255, material.emission.blue / 255, material.emission.alpha);
+    return lib_1.vec4(material.emission.red / 255, material.emission.green / 255, material.emission.blue / 255, material.emission.alpha);
 }
+exports.trace = trace;
 /*function antiAlias(sdf: SDF, p: Vector2, colorCallback:Function): Vector4
 {
     
 }*/
 function sample(sdf, p, sampleFunction, precision, subdiv) {
     const antiAliasThreshold = 1;
-    let color = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["mapColor"])(sampleFunction(sdf, p, precision, subdiv), 1 / subdiv);
+    let color = lib_1.mapColor(sampleFunction(sdf, p, precision, subdiv), 1 / subdiv);
     let distance = sdf(p.x, p.y)["0"];
     if (0 <= distance && distance <= antiAliasThreshold) {
-        let grad = new _lib__WEBPACK_IMPORTED_MODULE_0__["Vector2"](Object(_lib__WEBPACK_IMPORTED_MODULE_0__["gradient"])(sdf, p.x, p.y, 0.1));
-        let pN = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["minus"])(p, Object(_lib__WEBPACK_IMPORTED_MODULE_0__["scale"])(grad.normalized, antiAliasThreshold));
-        let colorN = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["mapColor"])(sampleFunction(sdf, pN, precision, subdiv), 1 / subdiv);
-        return _lib__WEBPACK_IMPORTED_MODULE_0__["Color"].blend(colorN, color, distance / antiAliasThreshold);
+        let grad = new lib_1.Vector2(lib_1.gradient(sdf, p.x, p.y, 0.1));
+        let pN = lib_1.minus(p, lib_1.scale(grad.normalized, antiAliasThreshold));
+        let colorN = lib_1.mapColor(sampleFunction(sdf, pN, precision, subdiv), 1 / subdiv);
+        return lib_1.Color.blend(colorN, color, distance / antiAliasThreshold);
     }
     return color;
 }
+exports.sample = sample;
 function uniformSample(sdf, p, precision, subdiv) {
-    let color = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["vec4"])(0, 0, 0, 1);
+    let color = lib_1.vec4(0, 0, 0, 1);
     for (let i = 0; i < subdiv; i++) {
         let rad = Math.PI * 2 * Math.random();
-        color = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["plus"])(trace(sdf, p, Object(_lib__WEBPACK_IMPORTED_MODULE_0__["vec2"])(Math.cos(rad), Math.sin(rad)), precision), color);
+        color = lib_1.plus(trace(sdf, p, lib_1.vec2(Math.cos(rad), Math.sin(rad)), precision), color);
     }
     return color;
 }
+exports.uniformSample = uniformSample;
 function stratifiedSample(sdf, p, precision, subdiv) {
-    let color = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["vec4"])(0, 0, 0, 1);
+    let color = lib_1.vec4(0, 0, 0, 1);
     for (let i = 0; i < subdiv; i++) {
         let rad = Math.PI * 2 * i / subdiv;
-        color = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["plus"])(trace(sdf, p, Object(_lib__WEBPACK_IMPORTED_MODULE_0__["vec2"])(Math.cos(rad), Math.sin(rad)), precision), color);
+        color = lib_1.plus(trace(sdf, p, lib_1.vec2(Math.cos(rad), Math.sin(rad)), precision), color);
     }
     return color;
 }
+exports.stratifiedSample = stratifiedSample;
 function jitteredSample(sdf, p, precision, subdiv) {
-    let color = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["vec4"])(0, 0, 0, 1);
+    let color = lib_1.vec4(0, 0, 0, 1);
     for (let i = 0; i < subdiv; i++) {
         let rad = Math.PI * 2 * (i + Math.random()) / subdiv;
-        color = Object(_lib__WEBPACK_IMPORTED_MODULE_0__["plus"])(trace(sdf, p, Object(_lib__WEBPACK_IMPORTED_MODULE_0__["vec2"])(Math.cos(rad), Math.sin(rad)), precision), color);
+        color = lib_1.plus(trace(sdf, p, lib_1.vec2(Math.cos(rad), Math.sin(rad)), precision), color);
     }
     return color;
 }
-
+exports.jitteredSample = jitteredSample;
 
 
 /***/ })
