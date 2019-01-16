@@ -5,9 +5,11 @@ type SDFResult = [number, Material];
 type SDF = (x: number, y: number) => SDFResult;
 export interface RenderCommand
 {
-    renderType: "preview" | "raytrace"
+    renderType: "preview" | "raytrace";
     code: string;
     options: RenderOption;
+    index?: number;
+    seed?: number;
 }
 export interface RenderResult
 {
@@ -149,7 +151,7 @@ export class Renderer
         
     }
 
-    *renderRaytraceIterator(sdf: SDF, buffer: Uint8ClampedArray): IterableIterator<RenderResult>
+    *renderRaytraceIterator(sdf: SDF, buffer: Uint8ClampedArray, rand: seedrandom.prng, offset:number=0): IterableIterator<RenderResult>
     {
         const pixelRenderer: IterableIterator<Color>[][] = [];
         const [width, height] = this.options.viewport.size;
@@ -159,7 +161,7 @@ export class Renderer
             for (let x = 0; x < width; x++)
             {
                 let p = Matrix3x3.multiplePoint(this.options.viewport.transform, new Vector2(x, y));
-                pixelRenderer[y].push(this.raytracer.sampleIterator(sdf, p));
+                pixelRenderer[y].push(this.raytracer.sampleIterator(sdf, p, rand, offset));
             }
         }
         for (var i = 1; i <= this.options.raytrace.subDivide; i++)

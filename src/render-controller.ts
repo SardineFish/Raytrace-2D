@@ -4,6 +4,14 @@ import linq from "linq";
 
 const RenderWorkerScript = "./build/renderWorker.js";
 
+export interface RenderProgress
+{
+    estimate: number;
+    spend: number;
+    progress: number;
+    buffer: Uint8ClampedArray;
+}
+
 export class RaytraceRenderController
 {
     workers: Worker[] = [];
@@ -13,6 +21,7 @@ export class RaytraceRenderController
     {
         if (this.state != "ready")
             return;
+        option.raytrace.subDivide = Math.ceil(option.raytrace.subDivide / option.thread) * option.thread;
         this.state = "rendering";
         const mix = new Uint8ClampedArray(option.viewport.size.x * option.viewport.size.y * 4);
         let n = 0;
@@ -53,10 +62,13 @@ export class RaytraceRenderController
                 }
             }
         }
-        this.workers.forEach(worker => worker.postMessage(<RenderCommand>{
+        const seed = Date.now();
+        this.workers.forEach((worker, idx) => worker.postMessage(<RenderCommand>{
             code: code,
             options: option,
-            renderType: "raytrace"
+            renderType: "raytrace",
+            seed: seed, 
+            index: idx
         }));
     }
 

@@ -1,5 +1,6 @@
 import { Range, Matrix3x3, Vector2, SDF, Color } from "./lib";
 import {RenderCommand, Renderer, RenderResult} from "./render"
+import seedrandom from "seedrandom";
 
 onmessage = (e) =>
 {
@@ -25,10 +26,10 @@ function process(renderCmd: RenderCommand)
     }
     function render(sdf: SDF)
     {
-        const renderer = new Renderer(renderCmd.options);
         let buffer = new Uint8ClampedArray(renderCmd.options.viewport.size.x * renderCmd.options.viewport.size.y * 4);
         if (renderCmd.renderType == "preview")
         {
+            const renderer = new Renderer(renderCmd.options);
             renderer.renderSDF(sdf, buffer);
             report({
                 progress: 1,
@@ -37,13 +38,20 @@ function process(renderCmd: RenderCommand)
         }
         else if (renderCmd.renderType == "raytrace")
         {
-            let N = 0;
-            for (const result of renderer.renderRaytraceIterator(sdf, buffer))
+            renderCmd.index = renderCmd.index || 0;
+            const renderer = new Renderer(renderCmd.options);
+            const N = renderCmd.options.raytrace.subDivide / renderCmd.options.thread;
+            const rand = seedrandom.alea(renderCmd.seed.toString());
+            let i = 0;
+            for (const result of renderer.renderRaytraceIterator(sdf, buffer, rand, renderCmd.index * N))
             {
+                if (i >= N)
+                    return;
                 report({
-                    progress: result.progress,
+                    progress: result.progress * renderCmd.options.thread,
                     buffer: new Uint8ClampedArray(result.buffer.buffer)
                 });
+                i++;
             }
         }
     }

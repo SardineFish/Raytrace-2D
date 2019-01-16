@@ -1,5 +1,6 @@
 import { Color, Vector2, Vector4, plus, scale, vec4, vec2, Range, Material, mapColor, gradient, minus, Rect } from "./lib";
 import { RenderOption, SampleFunctions } from "./render";
+import seedrandom from "seedrandom";
 
 type SDFResult = [number, Material];
 type SDF = (x: number, y: number) => SDFResult;
@@ -50,7 +51,7 @@ export class RayTracer2D
     sample(sdf: SDF, p: Vector2): Color
     {
         const antiAliasThreshold = 1;
-        let sampleFunction: (sdf: SDF, p: Vector2) => IterableIterator<Vector4>;
+        let sampleFunction: (sdf: SDF, p: Vector2, rand: seedrandom.prng, offset?: number) => IterableIterator<Vector4>;
         switch (this.options.raytrace.sampleFunction)
         {
             case "jittered":
@@ -67,7 +68,7 @@ export class RayTracer2D
         let color = vec4(0, 0, 0, 0);
         const N = this.options.raytrace.subDivide;
         
-        for (const c of sampleFunction(sdf, p))
+        for (const c of sampleFunction(sdf, p, null))
         {
             color = plus(color, c);
         }
@@ -78,7 +79,7 @@ export class RayTracer2D
             let grad = new Vector2(gradient(sdf, p.x, p.y, 0.1));
             let pN = minus(p, scale(grad.normalized, antiAliasThreshold));
             let antiAliasColor = vec4(0, 0, 0, 0);
-            for (const c of sampleFunction(sdf, pN))
+            for (const c of sampleFunction(sdf, pN, null))
             {
                 antiAliasColor = plus(color, c);
             }
@@ -87,10 +88,10 @@ export class RayTracer2D
         return mapColor(color, 1 / N);
     }
 
-    *sampleIterator(sdf: SDF, p: Vector2): IterableIterator<Color>
+    *sampleIterator(sdf: SDF, p: Vector2, rand: seedrandom.prng, offset: number = 0): IterableIterator<Color>
     {
         const antiAliasThreshold = 1;
-        let sampleFunction: (sdf: SDF, p: Vector2) => IterableIterator<Vector4>;
+        let sampleFunction: (sdf: SDF, p: Vector2, rand: seedrandom.prng, offset?: number) => IterableIterator<Vector4>;
         switch (this.options.raytrace.sampleFunction)
         {
             case "jittered":
@@ -113,9 +114,9 @@ export class RayTracer2D
         {
             let grad = new Vector2(gradient(sdf, p.x, p.y, 0.1));
             let pN = minus(p, scale(grad.normalized, antiAliasThreshold));
-            antiAliasIterator = sampleFunction(sdf, pN);
+            antiAliasIterator = sampleFunction(sdf, pN, rand, offset);
         }
-        for (const c of sampleFunction(sdf, p))
+        for (const c of sampleFunction(sdf, p, rand, offset))
         {
             n++;
             color = plus(color, c);
@@ -129,7 +130,7 @@ export class RayTracer2D
         }
     }
 
-    *uniformSample(sdf: SDF, p: Vector2)
+    *uniformSample(sdf: SDF, p: Vector2, rand: seedrandom.prng, offset: number = 0)
     {
         let color: Vector4 = vec4(0, 0, 0, 1);
         for (let i = 0; i < this.options.raytrace.subDivide; i++)
@@ -140,7 +141,7 @@ export class RayTracer2D
         return color;
     }
 
-    *stratifiedSample(sdf: SDF, p: Vector2)
+    *stratifiedSample(sdf: SDF, p: Vector2, rand: seedrandom.prng, offset: number = 0)
     {
         let color: Vector4 = vec4(0, 0, 0, 1);
         for (let i = 0; i < this.options.raytrace.subDivide; i++)
@@ -150,14 +151,15 @@ export class RayTracer2D
         }
         return color;
     }
-    *jitteredSample(sdf: SDF, p: Vector2)
+    *jitteredSample(sdf: SDF, p: Vector2, rand: seedrandom.prng, offset: number = 0)
     {
         let color: Vector4 = vec4(0, 0, 0, 1);
-        const offset = Math.floor(this.options.raytrace.subDivide * Math.random());
+        //const offset = Math.floor(this.options.raytrace.subDivide * Math.random());
+        offset = Math.floor(this.options.raytrace.subDivide * rand()) + offset;
         for (let i = 0; i < this.options.raytrace.subDivide; i++)
         {
             
-            let rad = Math.PI * 2 * ((i + offset) % this.options.raytrace.subDivide + Math.random()) / this.options.raytrace.subDivide;
+            let rad = Math.PI * 2 * ((i + offset) % this.options.raytrace.subDivide + rand()) / this.options.raytrace.subDivide;
             yield this.trace(sdf, p, vec2(Math.cos(rad), Math.sin(rad)));
             //color = <Vector4>plus(this.trace(sdf, p, vec2(Math.cos(rad), Math.sin(rad))), color);
         }

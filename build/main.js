@@ -27279,6 +27279,7 @@ class RaytraceRenderController {
     process(code, option, complete, onProgress) {
         if (this.state != "ready")
             return;
+        option.raytrace.subDivide = Math.ceil(option.raytrace.subDivide / option.thread) * option.thread;
         this.state = "rendering";
         const mix = new Uint8ClampedArray(option.viewport.size.x * option.viewport.size.y * 4);
         let n = 0;
@@ -27314,10 +27315,13 @@ class RaytraceRenderController {
                 }
             };
         }
-        this.workers.forEach(worker => worker.postMessage({
+        const seed = Date.now();
+        this.workers.forEach((worker, idx) => worker.postMessage({
             code: code,
             options: option,
-            renderType: "raytrace"
+            renderType: "raytrace",
+            seed: seed,
+            index: idx
         }));
     }
     cleanup() {
