@@ -27222,22 +27222,24 @@ function init() {
             .then(response => response.text())
             .then(code => {
             editor.session.getDocument().setValue(code);
-        });
-        fetch("/lib/user-lib/build/user-lib.js")
-            .then((response) => response.text())
-            .then((lib) => {
-            $("#button-render").addEventListener("click", () => {
-                const code = editor.session.getDocument().getValue();
-                renderCaller(lib + code, "raytrace");
-            });
-            $("#button-abort").addEventListener("click", () => {
-                raytraceController.abort();
-            });
-            editor.on("change", (e) => {
-                setTimeout(() => {
+            fetch("/lib/user-lib/build/user-lib.js")
+                .then((response) => response.text())
+                .then((lib) => {
+                $("#button-render").addEventListener("click", () => {
                     const code = editor.session.getDocument().getValue();
-                    renderCaller(lib + code, "preview");
+                    renderCaller(lib + code, "raytrace");
                 });
+                $("#button-abort").addEventListener("click", () => {
+                    raytraceController.abort();
+                });
+                editor.on("change", (e) => {
+                    setTimeout(() => {
+                        const code = editor.session.getDocument().getValue();
+                        renderCaller(lib + code, "preview");
+                    });
+                });
+                var code = editor.session.getDocument().getValue();
+                renderCaller(lib + code, "preview");
             });
         });
         //setBound(new Range(-width / 2, width / 2), new Range(-height / 2, height / 2));
