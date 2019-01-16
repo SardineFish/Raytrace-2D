@@ -157,6 +157,9 @@ class Color {
     static fromHSL(h, s, l, alpha = 1) {
         return new Color(0, 0, 0, alpha).setHSL(h, s, l);
     }
+    static from(color) {
+        return new Color(color.red, color.green, color.blue, color.alpha);
+    }
     setHSL(h, s, l) {
         h = h < 0 ? h + 360 : h;
         const chroma = (1 - Math.abs(2 * l - 1)) * s;
@@ -407,8 +410,13 @@ class Rect {
     }
 }
 exports.Rect = Rect;
-class Matrix3x3 {
+class Matrix3x3 extends Array {
     constructor(mat = null) {
+        super(...[
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1]
+        ]);
         this[0] = [1, 0, 0];
         this[1] = [0, 1, 0];
         this[2] = [0, 0, 1];
@@ -485,6 +493,157 @@ exports.gradient = gradient;
 
 /***/ }),
 
+/***/ "./src/render.ts":
+/*!***********************!*\
+  !*** ./src/render.ts ***!
+  \***********************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const trace_1 = __webpack_require__(/*! ./trace */ "./src/trace.ts");
+const lib_1 = __webpack_require__(/*! ./lib */ "./src/lib.ts");
+class RenderCmd {
+    constructor(renderOption) {
+        this.renderOption = null;
+        this.buffer = null;
+        this.xRange = null;
+        this.yRange = null;
+        this.renderOption = renderOption;
+    }
+}
+class RenderState {
+    constructor() {
+        this.progress = 0;
+        this.buffer = null;
+    }
+}
+function startRenderWorker(renderCmd, outputTarget) {
+    //renderCmd.buffer = new Uint8ClampedArray(renderCmd.xRange.length * renderCmd.yRange.length << 2);
+    let worker = new Worker("./build/renderWorker.js");
+    let ctx = outputTarget.getContext("2d");
+    worker.onmessage = (e) => {
+        let state = e.data;
+        let imgData = new ImageData(state.buffer, renderCmd.xRange.size, renderCmd.yRange.size);
+        ctx.putImageData(imgData, renderCmd.xRange.from, renderCmd.yRange.from);
+        if (state.progress >= 1)
+            worker.terminate();
+    };
+    renderCmd.buffer;
+    worker.postMessage(renderCmd, [renderCmd.buffer.buffer]);
+}
+function renderRaytrace(sdf, renderOption, outputTarget) {
+    //outputTarget.width = renderOption.width;
+    //outputTarget.height = renderOption.height;
+    /*
+        let renderCmd = new RenderCmd(renderOption);
+        renderCmd.xRange = new Range(0, renderOption.viewport.size.x);
+        renderCmd.yRange = new Range(0, renderOption.viewport.size.y);
+        
+        let imgDta = outputTarget.getContext("2d").getImageData(0, 0, renderOption.width, renderOption.height);
+        renderCmd.buffer = new Uint8ClampedArray(imgDta.data);
+        startRenderWorker(renderCmd, outputTarget);*/
+}
+function renderSDF(sdf, renderOption, outputBuffer) {
+    const width = renderOption.viewport.size.x;
+    const height = renderOption.viewport.size.y;
+    const threshold = 1;
+    let imgData = new ImageData(outputBuffer, width, height);
+    for (let y = -height / 2 + 1; y <= height / 2; y++) {
+        for (let x = -width / 2; x < width / 2; x++) {
+            let [dst, mat] = sdf(x, y);
+            let color = renderOption.environment.backgroundColor;
+            if (dst <= 0)
+                color = mat.emission;
+            else if (dst < threshold) {
+                var t = dst / threshold;
+                color = lib_1.Color.blend(renderOption.environment.backgroundColor, mat.emission, 1 - t);
+            }
+            drawPixel(outputBuffer, x + width / 2, -y + height / 2, width, height, color);
+        }
+    }
+}
+function drawPixel(buffer, x, y, width, height, color) {
+    let idx = (y * width + x) * 4;
+    buffer[idx] = color.red;
+    buffer[idx + 1] = color.green;
+    buffer[idx + 2] = color.blue;
+    buffer[idx + 3] = Math.floor(color.alpha * 255);
+}
+class Renderer {
+    constructor(options) {
+        this.options = options;
+        this.raytracer = new trace_1.RayTracer2D(options);
+    }
+    render(sdf, buffer) {
+    }
+    *renderRaytraceIterator(sdf, buffer) {
+        const pixelRenderer = [];
+        const [width, height] = this.options.viewport.size;
+        for (let y = 0; y < height; y++) {
+            pixelRenderer.push([]);
+            for (let x = 0; x < width; x++) {
+                let p = lib_1.Matrix3x3.multiplePoint(this.options.viewport.transform, new lib_1.Vector2(x, y));
+                pixelRenderer[y].push(this.raytracer.sampleIterator(sdf, p));
+            }
+        }
+        for (var i = 1; i <= this.options.raytrace.subDivide; i++) {
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    let idx = (y * width + x) * 4;
+                    let color = pixelRenderer[y][x].next().value;
+                    buffer[idx] = color.red;
+                    buffer[idx + 1] = color.green;
+                    buffer[idx + 2] = color.blue;
+                    buffer[idx + 3] = Math.floor(color.alpha * 255);
+                }
+            }
+            yield {
+                progress: i / this.options.raytrace.subDivide,
+                buffer: buffer
+            };
+        }
+    }
+    renderRaytrace(sdf, buffer) {
+        const [width, height] = this.options.viewport.size;
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                let idx = (y * width + x) * 4;
+                let p = lib_1.Matrix3x3.multiplePoint(this.options.viewport.transform, new lib_1.Vector2(x, y));
+                let color = this.raytracer.sample(sdf, p);
+                buffer[idx] = color.red;
+                buffer[idx + 1] = color.green;
+                buffer[idx + 2] = color.blue;
+                buffer[idx + 3] = Math.floor(color.alpha * 255);
+            }
+            /*
+            let state = new RenderState();
+            state.buffer = new Uint8ClampedArray(buffer);
+            state.progress = y / height;
+            postMessage(state, undefined, [state.buffer.buffer]);*/
+        }
+        //outputTarget.width = renderOption.width;
+        //outputTarget.height = renderOption.height;
+        /*
+        let renderCmd = new RenderCmd(renderOption);
+        renderCmd.xRange = new Range(0, renderOption.width);
+        renderCmd.yRange = new Range(0, renderOption.height);
+
+        let imgDta = outputTarget.getContext("2d").getImageData(0, 0, renderOption.width, renderOption.height);
+        renderCmd.buffer = new Uint8ClampedArray(imgDta.data);
+        startRenderWorker(renderCmd, outputTarget);*/
+    }
+    renderSDF(sdf, buffer) {
+        renderSDF(sdf, this.options, buffer);
+    }
+}
+exports.Renderer = Renderer;
+
+
+/***/ }),
+
 /***/ "./src/renderWorker.ts":
 /*!*****************************!*\
   !*** ./src/renderWorker.ts ***!
@@ -496,45 +655,181 @@ exports.gradient = gradient;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const lib_1 = __webpack_require__(/*! ./lib */ "./src/lib.ts");
+const render_1 = __webpack_require__(/*! ./render */ "./src/render.ts");
 onmessage = (e) => {
     console.log("receive");
     let renderCmd = e.data;
-    render(renderCmd);
+    process(renderCmd);
 };
-const SampleFunctions = {
-    JitteredSample: jitteredSample,
-    StratifiedSample: stratifiedSample,
-    UniformSample: uniformSample
-};
-function render(renderCmd) {
-    renderCmd.xRange = new lib_1.Range(renderCmd.xRange);
-    renderCmd.yRange = new lib_1.Range(renderCmd.yRange);
-    let xStart = renderCmd.xRange.from;
-    let xEnd = renderCmd.xRange.to;
-    let yStart = renderCmd.yRange.from;
-    let yEnd = renderCmd.yRange.to;
-    let width = renderCmd.xRange.size;
-    let height = renderCmd.yRange.size;
-    let sampleFunc = SampleFunctions[renderCmd.renderOption.raytraceOptions.sampleFunction];
-    let buffer = renderCmd.buffer;
-    let progress = 0;
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            let pos = y * width + x;
-            let idx = pos << 2;
-            let p = lib_1.Matrix3x3.multipleVector(renderCmd.renderOption.viewerOptions.transform, new lib_1.Vector2(xStart + x, yStart + y));
-            let color = sample(renderCmd.sdf, p, sampleFunc, renderCmd.renderOption.raytraceOptions.hitThreshold, renderCmd.renderOption.raytraceOptions.subDivide);
-            buffer[idx] = color.red;
-            buffer[idx + 1] = color.green;
-            buffer[idx + 2] = color.blue;
-            buffer[idx + 3] = color.alpha;
+function report(result) {
+    postMessage(result, undefined, [result.buffer]);
+}
+function process(renderCmd) {
+    function config() {
+        renderCmd.options.environment.ambient = lib_1.Color.from(renderCmd.options.environment.ambient);
+        renderCmd.options.environment.backgroundColor = lib_1.Color.from(renderCmd.options.environment.ambient);
+        renderCmd.options.viewport.size = new lib_1.Vector2(renderCmd.options.viewport.size);
+        renderCmd.options.viewport.transform = new lib_1.Matrix3x3(renderCmd.options.viewport.transform);
+    }
+    function render(sdf) {
+        const renderer = new render_1.Renderer(renderCmd.options);
+        let buffer = new Uint8ClampedArray(renderCmd.options.viewport.size.x * renderCmd.options.viewport.size.y * 4);
+        if (renderCmd.renderType == "preview") {
+            renderer.renderSDF(sdf, buffer);
+            report({
+                progress: 1,
+                buffer: buffer
+            });
         }
-        let state = new RenderState();
-        state.buffer = new Uint8ClampedArray(buffer);
-        state.progress = y / height;
-        postMessage(state, undefined, [state.buffer.buffer]);
+        else if (renderCmd.renderType == "raytrace") {
+            let N = 0;
+            for (const result of renderer.renderRaytraceIterator(sdf, buffer)) {
+                report({
+                    progress: result.progress,
+                    buffer: new Uint8ClampedArray(result.buffer.buffer)
+                });
+            }
+        }
+    }
+    eval(renderCmd.code);
+}
+
+
+/***/ }),
+
+/***/ "./src/trace.ts":
+/*!**********************!*\
+  !*** ./src/trace.ts ***!
+  \**********************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const lib_1 = __webpack_require__(/*! ./lib */ "./src/lib.ts");
+let BoundX = new lib_1.Range(-500, 500);
+let BoundY = new lib_1.Range(-500, 500);
+function setBound(boundX, boundY) {
+    BoundX = boundX;
+    BoundY = boundY;
+}
+/*function antiAlias(sdf: SDF, p: Vector2, colorCallback:Function): Vector4
+{
+    
+}*/
+class RayTracer2D {
+    constructor(options) {
+        this.options = options;
+        this.bound = new lib_1.Rect(options.viewport.size);
+    }
+    trace(sdf, p, dir) {
+        let distance = 0;
+        let material;
+        dir = dir.normalized;
+        do {
+            p = lib_1.plus(p, lib_1.scale(dir, distance));
+            [distance, material] = sdf(p.x, p.y);
+            if (!this.bound.inRect(p))
+                return this.options.environment.backgroundColor.toVector4();
+        } while (distance > this.options.raytrace.hitThreshold);
+        return material.emission.toVector4();
+    }
+    sample(sdf, p) {
+        const antiAliasThreshold = 1;
+        let sampleFunction;
+        switch (this.options.raytrace.sampleFunction) {
+            case "jittered":
+                sampleFunction = this.jitteredSample;
+                break;
+            case "stratified":
+                sampleFunction = this.stratifiedSample;
+                break;
+            case "uniform":
+                sampleFunction = this.uniformSample;
+                break;
+        }
+        sampleFunction = sampleFunction.bind(this);
+        let color = lib_1.vec4(0, 0, 0, 0);
+        const N = this.options.raytrace.subDivide;
+        for (const c of sampleFunction(sdf, p)) {
+            color = lib_1.plus(color, c);
+        }
+        const distance = sdf(p.x, p.y)[0];
+        if (0 <= distance && distance <= antiAliasThreshold) {
+            let grad = new lib_1.Vector2(lib_1.gradient(sdf, p.x, p.y, 0.1));
+            let pN = lib_1.minus(p, lib_1.scale(grad.normalized, antiAliasThreshold));
+            let antiAliasColor = lib_1.vec4(0, 0, 0, 0);
+            for (const c of sampleFunction(sdf, pN)) {
+                antiAliasColor = lib_1.plus(color, c);
+            }
+            return lib_1.Color.blend(lib_1.mapColor(antiAliasColor, 1 / N), lib_1.mapColor(color, 1 / N), distance / antiAliasThreshold);
+        }
+        return lib_1.mapColor(color, 1 / N);
+    }
+    *sampleIterator(sdf, p) {
+        const antiAliasThreshold = 1;
+        let sampleFunction;
+        switch (this.options.raytrace.sampleFunction) {
+            case "jittered":
+                sampleFunction = this.jitteredSample;
+                break;
+            case "stratified":
+                sampleFunction = this.stratifiedSample;
+                break;
+            case "uniform":
+                sampleFunction = this.uniformSample;
+                break;
+        }
+        sampleFunction = sampleFunction.bind(this);
+        let color = lib_1.vec4(0, 0, 0, 0);
+        let antiAliasColor = lib_1.vec4(0, 0, 0, 0);
+        let n = 0;
+        const distance = sdf(p.x, p.y)[0];
+        let antiAliasIterator = null;
+        if (0 <= distance && distance <= antiAliasThreshold) {
+            let grad = new lib_1.Vector2(lib_1.gradient(sdf, p.x, p.y, 0.1));
+            let pN = lib_1.minus(p, lib_1.scale(grad.normalized, antiAliasThreshold));
+            antiAliasIterator = sampleFunction(sdf, pN);
+        }
+        for (const c of sampleFunction(sdf, p)) {
+            n++;
+            color = lib_1.plus(color, c);
+            if (antiAliasIterator) {
+                antiAliasColor = lib_1.plus(antiAliasColor, antiAliasIterator.next().value);
+                yield lib_1.Color.blend(lib_1.mapColor(antiAliasColor, 1 / n), lib_1.mapColor(color, 1 / n), distance / antiAliasThreshold);
+            }
+            else
+                yield lib_1.mapColor(color, 1 / n);
+        }
+    }
+    *uniformSample(sdf, p) {
+        let color = lib_1.vec4(0, 0, 0, 1);
+        for (let i = 0; i < this.options.raytrace.subDivide; i++) {
+            let rad = Math.PI * 2 * Math.random();
+            yield this.trace(sdf, p, lib_1.vec2(Math.cos(rad), Math.sin(rad)));
+        }
+        return color;
+    }
+    *stratifiedSample(sdf, p) {
+        let color = lib_1.vec4(0, 0, 0, 1);
+        for (let i = 0; i < this.options.raytrace.subDivide; i++) {
+            let rad = Math.PI * 2 * i / this.options.raytrace.subDivide;
+            yield this.trace(sdf, p, lib_1.vec2(Math.cos(rad), Math.sin(rad)));
+        }
+        return color;
+    }
+    *jitteredSample(sdf, p) {
+        let color = lib_1.vec4(0, 0, 0, 1);
+        const offset = Math.floor(this.options.raytrace.subDivide * Math.random());
+        for (let i = 0; i < this.options.raytrace.subDivide; i++) {
+            let rad = Math.PI * 2 * ((i + offset) % this.options.raytrace.subDivide + Math.random()) / this.options.raytrace.subDivide;
+            yield this.trace(sdf, p, lib_1.vec2(Math.cos(rad), Math.sin(rad)));
+            //color = <Vector4>plus(this.trace(sdf, p, vec2(Math.cos(rad), Math.sin(rad))), color);
+        }
     }
 }
+exports.RayTracer2D = RayTracer2D;
 
 
 /***/ })

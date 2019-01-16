@@ -1,8 +1,9 @@
-import { Color, Range, vec2, Vector4, Material, mapColor, gradient, Matrix3x3, SDF } from "./lib";
+import { Color, Range, vec2, Vector4, Material, mapColor, gradient, Matrix3x3, SDF, Vector2 } from "./lib";
 import { scale, translate, union, rotate, expand, subtract, displace, blend, wrapSDF, intersect } from "./transform";
 import { circle, rect, torus, belt, capsule } from "./shape";
-import { RenderOption, Renderer } from "./render";
+import { RenderOption, Renderer, RenderCommand, RenderResult } from "./render";
 import * as ace from "../lib/ace-builds";
+import { PreviewController, RaytraceRenderController } from "./render-controller";
 require("../lib/ace-builds/src-noconflict/ext-language_tools");
 /*type SDFResult = [number, Color];
 type SDF = (x: number, y: number) => SDFResult;*/
@@ -45,7 +46,7 @@ function main(t?:number)
 	renderOption.environment.backgroundColor = new Color(255, 128, 180, 1.0);
 	renderSDF(graph, renderOption, $("#canvas"));
 	renderRaytrace(graph, renderOption, $("#canvas"));*/
-
+/*
 	const renderer = new Renderer({
 		environment: {
 			ambient: new Color(0, 0, 0),
@@ -177,6 +178,8 @@ function update(delay) {
 	main(delay / 1000);
 }
 */
+const previewController = new PreviewController();
+const raytraceController = new RaytraceRenderController();
 function initCanvas(option: RenderOption)
 {
 	const canvas = $("#canvas") as HTMLCanvasElement;
@@ -184,7 +187,15 @@ function initCanvas(option: RenderOption)
 	canvas.width = option.viewport.size.x;
 	canvas.height = option.viewport.size.y;
 }
-function renderCaller(code: string)
+function display(buffer: Uint8ClampedArray, size: Vector2)
+{
+	const canvas = $("#canvas") as HTMLCanvasElement;
+	const ctx = canvas.getContext("2d");
+	canvas.width = size.x;
+	canvas.height = size.y;
+	ctx.putImageData(new ImageData(buffer, size.x, size.y), 0, 0);
+}
+function renderCaller(code: string, mode: "preview" | "raytrace")
 {
 	const option: RenderOption = {
 		environment: {
@@ -203,41 +214,35 @@ function renderCaller(code: string)
 			size: vec2(800, 480),
 			transform: new Matrix3x3([
 				[1, 0, -400 + 1],
-				[0, 1, -240 + 1],
+				[0, -1, 240 - 1],
 				[0, 0, 1]
 			])
 		},
-		antiAlias: true
+		antiAlias: true,
+		thread: 4,
+		preview: true
 	};
 	function render(sdf: SDF)
 	{
-		const renderer = new Renderer({
-			environment: {
-				ambient: new Color(0, 0, 0),
-				backgroundColor: new Color(0, 0, 0),
-			},
-			raytrace: {
-				hitThreshold: 0.01,
-				reflectDepth: 8,
-				refrectDepth: 8,
-				sampleFunction: "jittered",
-				subDivide: 4
-			},
-			renderOrder: "progressive",
-			viewport: {
-				size: vec2(800, 480),
-				transform: new Matrix3x3([
-					[1, 0, -400 + 1],
-					[0, 1, -240 + 1],
-					[0, 0, 1]
-				])
-			},
-			antiAlias: true
-		});
-		
-		var buffer = new Uint8ClampedArray(800 * 480 * 4);
-		renderer.renderSDF(sdf, buffer);
-		($("#canvas") as HTMLCanvasElement).getContext("2d").putImageData(new ImageData(buffer, 800, 480), 0, 0);
+		if (mode == "preview")
+		{
+			previewController.render(code, option, (result) =>
+			{
+				display(result.buffer, option.viewport.size);
+			});
+		}
+		else if (mode == "raytrace")
+		{
+			raytraceController.process(code, option,
+				(progress) =>
+				{
+					display(progress.buffer, option.viewport.size);
+				},
+				(complete) =>
+				{
+					display(complete.buffer, option.viewport.size);
+				});
+		}
 	}
 	function config(config: RenderOption)
 	{
@@ -249,7 +254,7 @@ function renderCaller(code: string)
 		if (config.viewport)
 		{
 			option.viewport.size = config.viewport.size || vec2(800, 480);
-			if (option.viewport.transform)
+			if (config.viewport.transform)
 				option.viewport.transform = Matrix3x3.multipleMatrix(option.viewport.transform, config.viewport.transform);
 		}
 		if (config.raytrace)
@@ -260,10 +265,11 @@ function renderCaller(code: string)
 			option.raytrace.sampleFunction = config.raytrace.sampleFunction || "jittered";
 			option.raytrace.subDivide = config.raytrace.subDivide || 64;
 		}
-		config.renderOrder = config.renderOrder || "progressive";
-		config.antiAlias = config.antiAlias || true;
+		option.renderOrder = config.renderOrder || "progressive";
+		option.antiAlias = config.antiAlias === undefined ? true : option.antiAlias;
+		option.preview = config.preview === undefined ? true : option.preview;
+		option.thread = config.thread || 4;
 		
-		initCanvas(option);
 	}
 	config({} as any);
 	eval(code);
@@ -299,7 +305,7 @@ async function init()
 			$("#button-render").addEventListener("mousedown", () =>
 			{
 				const code = editor.session.getDocument().getValue();
-				renderCaller(lib + code);
+				renderCaller(lib + code, "raytrace");
 			});
 		});
 

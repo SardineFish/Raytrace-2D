@@ -1,58 +1,52 @@
-import { Range, Matrix3x3, Vector2 } from "./lib";
+import { Range, Matrix3x3, Vector2, SDF, Color } from "./lib";
+import {RenderCommand, Renderer, RenderResult} from "./render"
 
 onmessage = (e) =>
 {
     console.log("receive");
-    let renderCmd = e.data as RenderCmd;
-    render(renderCmd);
+    let renderCmd = <RenderCommand>e.data;
+    process(renderCmd);
+    
 }
 
-const SampleFunctions:any = {
-    JitteredSample: jitteredSample,
-    StratifiedSample: stratifiedSample,
-    UniformSample: uniformSample
-};
-
-function render(renderCmd: RenderCmd)
+function report(result: RenderResult)
 {
-    renderCmd.xRange = new Range(renderCmd.xRange);
-    renderCmd.yRange = new Range(renderCmd.yRange);
-    let xStart = renderCmd.xRange.from;
-    let xEnd = renderCmd.xRange.to;
-    let yStart = renderCmd.yRange.from;
-    let yEnd = renderCmd.yRange.to;
-
-    let width = renderCmd.xRange.size;
-    let height = renderCmd.yRange.size;
-    
-    let sampleFunc = SampleFunctions[renderCmd.renderOption.raytraceOptions.sampleFunction];
-    let buffer = renderCmd.buffer;
-
-    let progress = 0;
-    
-    for (let y = 0; y < height; y++)
-    {
-        for (let x = 0; x < width; x++)
-        {
-            let pos = y * width + x;
-            let idx = pos << 2;
-            let p = Matrix3x3.multipleVector(renderCmd.renderOption.viewerOptions.transform, new Vector2(xStart + x, yStart + y));
-            let color = sample(renderCmd.sdf,
-                p,
-                sampleFunc,
-                renderCmd.renderOption.raytraceOptions.hitThreshold,
-                renderCmd.renderOption.raytraceOptions.subDivide
-            );
-            buffer[idx] = color.red;
-            buffer[idx + 1] = color.green;
-            buffer[idx + 2] = color.blue;
-            buffer[idx + 3] = color.alpha;
-        }
-
-        let state = new RenderState();
-        state.buffer = new Uint8ClampedArray(buffer);
-        state.progress = y / height;
-        postMessage(state, undefined, [state.buffer.buffer]);
-    }
+    postMessage(result, undefined, [result.buffer]);
 }
 
+function process(renderCmd: RenderCommand)
+{
+    function config()
+    { 
+        renderCmd.options.environment.ambient = Color.from(renderCmd.options.environment.ambient);
+        renderCmd.options.environment.backgroundColor = Color.from(renderCmd.options.environment.ambient);
+        renderCmd.options.viewport.size = new Vector2(renderCmd.options.viewport.size);
+        renderCmd.options.viewport.transform = new Matrix3x3(renderCmd.options.viewport.transform);
+    }
+    function render(sdf: SDF)
+    {
+        const renderer = new Renderer(renderCmd.options);
+        let buffer = new Uint8ClampedArray(renderCmd.options.viewport.size.x * renderCmd.options.viewport.size.y * 4);
+        if (renderCmd.renderType == "preview")
+        {
+            renderer.renderSDF(sdf, buffer);
+            report({
+                progress: 1,
+                buffer: buffer
+            });
+        }
+        else if (renderCmd.renderType == "raytrace")
+        {
+            let N = 0;
+            for (const result of renderer.renderRaytraceIterator(sdf, buffer))
+            {
+                report({
+                    progress: result.progress,
+                    buffer: new Uint8ClampedArray(result.buffer.buffer)
+                });
+            }
+        }
+    }
+    
+    eval(renderCmd.code);
+}

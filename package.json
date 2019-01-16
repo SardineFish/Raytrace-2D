@@ -4,7 +4,8 @@
   "description": "A demo of raytrace rendering in 2D space.",
   "main": "script.js",
   "dependencies": {
-    "@types/node": "^10.12.18"
+    "@types/node": "^10.12.18",
+    "linq": "^3.1.1"
   },
   "devDependencies": {
     "browser-sync": "^2.26.3",
@@ -17,7 +18,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npx browser-sync start -s -f *.*",
     "build": "npx webpack",
-    "build:watch": "npx webpack --watch"
+    "build:watch": "npx webpack --watch",
+    "build:user-lib": "npx tsc -p ./lib/user-lib"
   },
   "repository": {
     "type": "git",

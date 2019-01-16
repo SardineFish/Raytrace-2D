@@ -640,10 +640,15 @@ export class Rect
     }
 }
 
-class Matrix3x3
+class Matrix3x3 extends Array<Array<number>>
 {
     constructor(mat: Matrix3x3 | number[][] = null)
     {
+        super(...[
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1]
+        ]);
         this[0] = [1, 0, 0];
         this[1] = [0, 1, 0];
         this[2] = [0, 0, 1];
@@ -654,7 +659,6 @@ class Matrix3x3
             this[2] = mat[2].copyWithin(0, 0);
         }
     }
-    [indexer: number]: number[];
     static get identity()
     {
         return new Matrix3x3();

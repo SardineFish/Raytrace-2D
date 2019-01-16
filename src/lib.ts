@@ -89,6 +89,11 @@ class Color
         return new Color(0, 0, 0, alpha).setHSL(h, s, l);
     }
 
+    static from(color: Color)
+    {
+        return new Color(color.red, color.green, color.blue, color.alpha);
+    }
+
     setHSL(h: number, s: number, l: number)
     {
         h = h < 0 ? h + 360 : h;
@@ -400,10 +405,15 @@ export class Rect
     }
 }
 
-class Matrix3x3
+class Matrix3x3 extends Array<Array<number>>
 {
     constructor(mat: Matrix3x3 | number[][] = null)
     {
+        super(...[
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1]
+        ]);
         this[0] = [1, 0, 0];
         this[1] = [0, 1, 0];
         this[2] = [0, 0, 1];
@@ -414,7 +424,6 @@ class Matrix3x3
             this[2] = mat[2].copyWithin(0, 0);
         }
     }
-    [indexer: number]: number[];
     static get identity()
     {
         return new Matrix3x3();

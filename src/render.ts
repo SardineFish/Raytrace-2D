@@ -3,10 +3,16 @@ import { Color, Material, Range, Matrix3x3, Vector2 } from "./lib";
 
 type SDFResult = [number, Material];
 type SDF = (x: number, y: number) => SDFResult;
-export interface RanderCommand
+export interface RenderCommand
 {
+    renderType: "preview" | "raytrace"
     code: string;
     options: RenderOption;
+}
+export interface RenderResult
+{
+    progress: number;
+    buffer: Uint8ClampedArray;
 }
 export interface RenderOption
 {
@@ -16,7 +22,8 @@ export interface RenderOption
     viewport: ViewerOptions;// = new ViewerOptions();
     antiAlias: boolean;// = true;
     renderOrder: RenderOrder;// = RenderOrder.Progressive;
-    //outputTarget: HTMLCanvasElement;// = null;
+    thread: number;// = 4;
+    preview: boolean;// = true;
 }
 export type SampleFunctions = "jittered" | "stratified" | "uniform";
 export type RenderOrder = "progressive";
@@ -140,6 +147,40 @@ export class Renderer
     render(sdf: SDF, buffer: Uint8ClampedArray): void
     {
         
+    }
+
+    *renderRaytraceIterator(sdf: SDF, buffer: Uint8ClampedArray): IterableIterator<RenderResult>
+    {
+        const pixelRenderer: IterableIterator<Color>[][] = [];
+        const [width, height] = this.options.viewport.size;
+        for (let y = 0; y < height; y++)
+        {
+            pixelRenderer.push([]);
+            for (let x = 0; x < width; x++)
+            {
+                let p = Matrix3x3.multiplePoint(this.options.viewport.transform, new Vector2(x, y));
+                pixelRenderer[y].push(this.raytracer.sampleIterator(sdf, p));
+            }
+        }
+        for (var i = 1; i <= this.options.raytrace.subDivide; i++)
+        {
+            for (let y = 0; y < height; y++)
+            {
+                for (let x = 0; x < width; x++)
+                {
+                    let idx = (y * width + x) * 4;
+                    let color = pixelRenderer[y][x].next().value;
+                    buffer[idx] = color.red;
+                    buffer[idx + 1] = color.green;
+                    buffer[idx + 2] = color.blue;
+                    buffer[idx + 3] = Math.floor(color.alpha * 255);
+                }
+            }
+            yield {
+                progress: i / this.options.raytrace.subDivide,
+                buffer: buffer
+            };
+        }
     }
 
     renderRaytrace(sdf: SDF, buffer: Uint8ClampedArray)
