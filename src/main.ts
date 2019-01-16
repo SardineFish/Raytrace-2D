@@ -31,7 +31,7 @@ function display(buffer: Uint8ClampedArray, size: Vector2)
 }
 function formatNumber(x: number)
 {
-	return x > 10 ? x.toString() : "0" + x.toString();
+	return x >= 10 ? x.toString() : "0" + x.toString();
 }
 function formatTime(time: number)
 {
