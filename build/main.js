@@ -27181,7 +27181,7 @@ function renderCaller(code, mode) {
                 option.viewport.transform = lib_1.Matrix3x3.multipleMatrix(option.viewport.transform, config.viewport.transform);
         }
         if (config.raytrace) {
-            option.raytrace.hitThreshold = config.raytrace.hitThreshold || 0.1;
+            option.raytrace.hitThreshold = config.raytrace.hitThreshold || 0.01;
             option.raytrace.reflectDepth = config.raytrace.reflectDepth || 8;
             option.raytrace.refrectDepth = config.raytrace.refrectDepth || 8;
             option.raytrace.sampleFunction = config.raytrace.sampleFunction || "jittered";
@@ -27216,6 +27216,11 @@ function init() {
         });
         editor.setTheme("ace/theme/monokai");
         editor.session.setMode("ace/mode/javascript");
+        fetch("/lib/user-lib/build/demo.js")
+            .then(response => response.text())
+            .then(code => {
+            editor.session.getDocument().setValue(code);
+        });
         fetch("/lib/user-lib/build/user-lib.js")
             .then((response) => response.text())
             .then((lib) => {
