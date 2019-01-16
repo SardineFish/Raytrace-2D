@@ -1,7 +1,7 @@
 const path = require("path");
 
 module.exports= {
-    mode:"development",
+    // mode:"production",
     entry: {
         main: "./src/main.ts",
         renderWorker: "./src/renderWorker.ts",
@@ -21,5 +21,5 @@ module.exports= {
                     loader: "ts-loader"
                 }
             ]
-        }
+    }
 };
