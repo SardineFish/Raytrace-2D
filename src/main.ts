@@ -247,7 +247,7 @@ function renderCaller(code: string, mode: "preview" | "raytrace")
 	};
 	function render(sdf: SDF)
 	{
-		if (mode == "preview")
+		if (mode == "preview" && option.preview)
 		{
 			previewController.render(code, option, (result) =>
 			{
@@ -335,6 +335,14 @@ async function init()
 			$("#button-abort").addEventListener("click", () =>
 			{
 				raytraceController.abort();
+			});
+			editor.on("change", (e) =>
+			{
+				setTimeout(() =>
+				{
+					const code = editor.session.getDocument().getValue();
+					renderCaller(lib + code, "preview");
+				});
 			});
 		});
 

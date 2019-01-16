@@ -27154,7 +27154,7 @@ function renderCaller(code, mode) {
         preview: true
     };
     function render(sdf) {
-        if (mode == "preview") {
+        if (mode == "preview" && option.preview) {
             previewController.render(code, option, (result) => {
                 display(result.buffer, option.viewport.size);
             });
@@ -27225,6 +27225,12 @@ function init() {
             });
             $("#button-abort").addEventListener("click", () => {
                 raytraceController.abort();
+            });
+            editor.on("change", (e) => {
+                setTimeout(() => {
+                    const code = editor.session.getDocument().getValue();
+                    renderCaller(lib + code, "preview");
+                });
             });
         });
         //setBound(new Range(-width / 2, width / 2), new Range(-height / 2, height / 2));
@@ -27395,8 +27401,14 @@ class PreviewController {
         this.worker = new Worker(RenderWorkerScript);
     }
     render(code, option, complete) {
-        if (this.state != "ready")
+        if (this.state != "ready") {
+            this.pending = {
+                code: code,
+                option: option,
+                complete: complete
+            };
             return;
+        }
         if (this.scheduledRender)
             clearTimeout(this.scheduledRender);
         this.scheduledRender = setTimeout(() => {
@@ -27404,6 +27416,14 @@ class PreviewController {
             this.scheduledRender = 0;
             this.worker.onmessage = (e) => {
                 complete(e.data);
+                this.state = "ready";
+                if (this.pending) {
+                    let code = this.pending.code;
+                    let option = this.pending.option;
+                    let complete = this.pending.complete;
+                    setTimeout(() => this.render(code, option, complete));
+                    this.pending = null;
+                }
             };
             this.worker.postMessage({
                 code: code,

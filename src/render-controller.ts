@@ -136,16 +136,32 @@ export class RaytraceRenderController
     }
 }
 
+
+interface PreviewRequest
+{
+    code: string;
+    option: RenderOption;
+    complete: (result: RenderResult) => void;
+}
+
 export class PreviewController
 {
     scheduledRender: number;
     state: "ready" | "rendering" = "ready";
+    pending: PreviewRequest;
     worker = new Worker(RenderWorkerScript);
 
     render(code: string, option: RenderOption, complete: (result: RenderResult) => void)
     {
         if (this.state != "ready")
+        {
+            this.pending = {
+                code: code,
+                option: option,
+                complete: complete
+            };
             return;
+        }
         if (this.scheduledRender)
             clearTimeout(this.scheduledRender);
         this.scheduledRender = setTimeout(() =>
@@ -155,6 +171,15 @@ export class PreviewController
             this.worker.onmessage = (e) =>
             {
                 complete(e.data as RenderResult);
+                this.state = "ready";
+                if (this.pending)
+                {
+                    let code = this.pending.code;
+                    let option = this.pending.option;
+                    let complete = this.pending.complete;
+                    setTimeout(() => this.render(code, option, complete));
+                    this.pending = null;
+                }
             };
             this.worker.postMessage(<RenderCommand>{
                 code: code,
