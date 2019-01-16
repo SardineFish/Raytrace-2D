@@ -1,4 +1,4 @@
-import { Color, Range, vec2, Vector4, Material, mapColor, gradient, Matrix3x3 } from "./lib";
+import { Color, Range, vec2, Vector4, Material, mapColor, gradient, Matrix3x3, SDF } from "./lib";
 import { scale, translate, union, rotate, expand, subtract, displace, blend, wrapSDF, intersect } from "./transform";
 import { circle, rect, torus, belt, capsule } from "./shape";
 import { RenderOption, Renderer } from "./render";
@@ -6,7 +6,7 @@ import * as ace from "../lib/ace-builds";
 require("../lib/ace-builds/src-noconflict/ext-language_tools");
 /*type SDFResult = [number, Color];
 type SDF = (x: number, y: number) => SDFResult;*/
-const $ = (selector: string) => document.querySelector(selector);
+const $ = (selector: string) => <HTMLElement>document.querySelector(selector);
 let renderingSDF = (x: number, y: number) => NaN;
 let width: number, height: number;
 /*window.wkr = new Worker("./build/renderWorker.js");
@@ -177,26 +177,134 @@ function update(delay) {
 	main(delay / 1000);
 }
 */
-function init() {
+function initCanvas(option: RenderOption)
+{
+	const canvas = $("#canvas") as HTMLCanvasElement;
+	const ctx = canvas.getContext("2d");
+	canvas.width = option.viewport.size.x;
+	canvas.height = option.viewport.size.y;
+}
+function renderCaller(code: string)
+{
+	const option: RenderOption = {
+		environment: {
+			ambient: new Color(0, 0, 0),
+			backgroundColor: new Color(0, 0, 0),
+		},
+		raytrace: {
+			hitThreshold: 0.01,
+			reflectDepth: 8,
+			refrectDepth: 8,
+			sampleFunction: "jittered",
+			subDivide: 4
+		},
+		renderOrder: "progressive",
+		viewport: {
+			size: vec2(800, 480),
+			transform: new Matrix3x3([
+				[1, 0, -400 + 1],
+				[0, 1, -240 + 1],
+				[0, 0, 1]
+			])
+		},
+		antiAlias: true
+	};
+	function render(sdf: SDF)
+	{
+		const renderer = new Renderer({
+			environment: {
+				ambient: new Color(0, 0, 0),
+				backgroundColor: new Color(0, 0, 0),
+			},
+			raytrace: {
+				hitThreshold: 0.01,
+				reflectDepth: 8,
+				refrectDepth: 8,
+				sampleFunction: "jittered",
+				subDivide: 4
+			},
+			renderOrder: "progressive",
+			viewport: {
+				size: vec2(800, 480),
+				transform: new Matrix3x3([
+					[1, 0, -400 + 1],
+					[0, 1, -240 + 1],
+					[0, 0, 1]
+				])
+			},
+			antiAlias: true
+		});
+		
+		var buffer = new Uint8ClampedArray(800 * 480 * 4);
+		renderer.renderSDF(sdf, buffer);
+		($("#canvas") as HTMLCanvasElement).getContext("2d").putImageData(new ImageData(buffer, 800, 480), 0, 0);
+	}
+	function config(config: RenderOption)
+	{
+		if (config.environment)
+		{
+			option.environment.ambient = config.environment.ambient || new Color(0, 0, 0);
+			option.environment.backgroundColor = config.environment.backgroundColor || new Color(0, 0, 0);
+		}
+		if (config.viewport)
+		{
+			option.viewport.size = config.viewport.size || vec2(800, 480);
+			if (option.viewport.transform)
+				option.viewport.transform = Matrix3x3.multipleMatrix(option.viewport.transform, config.viewport.transform);
+		}
+		if (config.raytrace)
+		{
+			option.raytrace.hitThreshold = config.raytrace.hitThreshold || 0.1;
+			option.raytrace.reflectDepth = config.raytrace.reflectDepth || 8;
+			option.raytrace.refrectDepth = config.raytrace.refrectDepth || 8;
+			option.raytrace.sampleFunction = config.raytrace.sampleFunction || "jittered";
+			option.raytrace.subDivide = config.raytrace.subDivide || 64;
+		}
+		config.renderOrder = config.renderOrder || "progressive";
+		config.antiAlias = config.antiAlias || true;
+		
+		initCanvas(option);
+	}
+	config({} as any);
+	eval(code);
+}
+async function init()
+{
 	width = window.innerWidth;
 	height = window.innerHeight;
 	window.onmousemove = (e) => {
 		let x = Math.floor(e.clientX - width / 2);
 		let y = Math.floor(-(e.clientY - height / 2));
-		ace.config.set("basePath", "/lib/ace-builds/src-min-noconflict");
-		const editor = ace.edit($("#editor-wrapper"));
-		editor.setOptions({
-			enableBasicAutocompletion: true,
-			enableLiveAutocompletion: true,
-			autoScrollEditorIntoView: true,
-			hScrollBarAlwaysVisible: true,
-			vScrollBarAlwaysVisible: true,
-		});
-		editor.setTheme("ace/theme/monokai");
-		editor.session.setMode("ace/mode/javascript")
+		
 		/*$("#mouse-pos").innerText = `(${x}, ${y})`;
 		$("#sdf-value").innerText = renderingSDF(x, y)["0"];*/
 	}
+
+	ace.config.set("basePath", "/lib/ace-builds/src-min-noconflict");
+	const editor = ace.edit($("#editor-wrapper"));
+	editor.setOptions({
+		enableBasicAutocompletion: true,
+		enableLiveAutocompletion: true,
+		autoScrollEditorIntoView: true,
+		hScrollBarAlwaysVisible: true,
+		vScrollBarAlwaysVisible: true,
+	});
+	editor.setTheme("ace/theme/monokai");
+	editor.session.setMode("ace/mode/javascript");
+
+	fetch("/lib/user-lib/build/user-lib.js")
+		.then((response) => response.text())
+		.then((lib) =>
+		{
+			$("#button-render").addEventListener("mousedown", () =>
+			{
+				const code = editor.session.getDocument().getValue();
+				renderCaller(lib + code);
+			});
+		});
+
+	
+
 	//setBound(new Range(-width / 2, width / 2), new Range(-height / 2, height / 2));
 }
 window.onload = () => {

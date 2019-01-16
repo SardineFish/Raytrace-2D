@@ -1,5 +1,5 @@
 type SDFResult = [number, Material];
-type SDF = (x: number, y: number) => SDFResult;
+export type SDF = (x: number, y: number) => SDFResult;
 
 class Color
 {

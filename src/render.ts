@@ -10,6 +10,7 @@ export interface RanderCommand
 }
 export interface RenderOption
 {
+    [key: string]: any;
     environment: EnvironmentOptions;// = new EnvironmentOptions();
     raytrace: RaytraceOptions;// = new RaytraceOptions();
     viewport: ViewerOptions;// = new ViewerOptions();
