@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "A demo of raytrace rendering in 2D space.",
   "main": "script.js",
-  "dependencies": {},
+  "dependencies": {
+    "@types/node": "^10.12.18"
+  },
   "devDependencies": {
     "browser-sync": "^2.26.3",
     "ts-loader": "^4.5.0",

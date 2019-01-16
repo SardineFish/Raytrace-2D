@@ -2,6 +2,8 @@ import { Color, Range, vec2, Vector4, Material, mapColor, gradient, Matrix3x3 } 
 import { scale, translate, union, rotate, expand, subtract, displace, blend, wrapSDF, intersect } from "./transform";
 import { circle, rect, torus, belt, capsule } from "./shape";
 import { RenderOption, Renderer } from "./render";
+import * as ace from "../lib/ace-builds";
+require("../lib/ace-builds/src-noconflict/ext-language_tools");
 /*type SDFResult = [number, Color];
 type SDF = (x: number, y: number) => SDFResult;*/
 const $ = (selector: string) => document.querySelector(selector);
@@ -18,6 +20,7 @@ testWorker.onmessage = (e) =>
 }*/
 function main(t?:number)
 {
+	return;
 	const SubDivide = 64;
 
 	let c = circle(50, new Material(new Color(255, 255, 252, 1.0)));
@@ -177,12 +180,20 @@ function update(delay) {
 function init() {
 	width = window.innerWidth;
 	height = window.innerHeight;
-	document.querySelector
-	$("#canvas").width = width;
-	$("#canvas").height = height;
 	window.onmousemove = (e) => {
 		let x = Math.floor(e.clientX - width / 2);
 		let y = Math.floor(-(e.clientY - height / 2));
+		ace.config.set("basePath", "/lib/ace-builds/src-min-noconflict");
+		const editor = ace.edit($("#editor-wrapper"));
+		editor.setOptions({
+			enableBasicAutocompletion: true,
+			enableLiveAutocompletion: true,
+			autoScrollEditorIntoView: true,
+			hScrollBarAlwaysVisible: true,
+			vScrollBarAlwaysVisible: true,
+		});
+		editor.setTheme("ace/theme/monokai");
+		editor.session.setMode("ace/mode/javascript")
 		/*$("#mouse-pos").innerText = `(${x}, ${y})`;
 		$("#sdf-value").innerText = renderingSDF(x, y)["0"];*/
 	}

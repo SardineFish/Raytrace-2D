@@ -7,6 +7,7 @@
 		<meta http-equiv="X-UA-Compatible" content="ie=edge">
 		<title>SDF</title>
 		<link rel="stylesheet" href="css/style.css">
+		<link rel="stylesheet" href="res/font/Open_Sans/OpenSans.css">
 	</head>
 	<body>
 		<div id="hover">
@@ -15,7 +16,23 @@
 			<div id="fps">0</div>
 		</div>
 		<div id="root">
-			<canvas id="canvas"></canvas>
+            <header id="top">
+               <p id="title">Raytrace 2D</p>
+                
+            </header>
+		    <main id="main">
+		        <section id="workspace">
+		            <div id="preview">
+			            <canvas id="canvas" width="1920" height="1080"></canvas>
+		            </div>
+		            <div id="controller">
+		                <div class="button" id="button-render">Render</div>
+		            </div>
+		        </section>
+		        <section id="editor">
+		            <div id="editor-wrapper"></div>
+		        </section>
+		    </main>
 		</div>
 		<script src="build/main.js" type="module"></script>
 	</body>
