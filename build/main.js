@@ -27109,6 +27109,10 @@ function display(buffer, size) {
     canvas.height = size.y;
     ctx.putImageData(new ImageData(buffer, size.x, size.y), 0, 0);
 }
+function showProgress(progress) {
+    $("#render-progress").classList.add("show");
+    $("#render-progress .progress").style.width = `${progress * 100}%`;
+}
 function renderCaller(code, mode) {
     const option = {
         environment: {
@@ -27142,10 +27146,12 @@ function renderCaller(code, mode) {
             });
         }
         else if (mode == "raytrace") {
-            raytraceController.process(code, option, (progress) => {
-                display(progress.buffer, option.viewport.size);
-            }, (complete) => {
+            showProgress(0);
+            raytraceController.process(code, option, (complete) => {
                 display(complete.buffer, option.viewport.size);
+            }, (progress) => {
+                showProgress(progress.progress);
+                display(progress.buffer, option.viewport.size);
             });
         }
     }

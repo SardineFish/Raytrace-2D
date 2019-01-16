@@ -45,7 +45,7 @@ body{
 
 #workspace {
     flex: 1 0;
-    padding: 5%;
+    padding: 3%;
     
 }
 
@@ -116,4 +116,29 @@ body{
 }
 .ace_scrollbar::-webkit-scrollbar-thumb:hover{
     background: rgba(255,255,255,.5);
+}
+.progress-bar {
+    width: 100%;
+    height: 10px;
+    background-color: #EEE;
+    position: relative;
+}
+
+.progress {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background-color: #52d031;
+    transition: width .2s;
+}
+
+#render-progress {
+    margin-top: 3em;
+    opacity: 0;
+    transition: opacity .5s;
+}
+#render-progress.show{
+    opacity: 1;
 }

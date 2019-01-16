@@ -195,6 +195,11 @@ function display(buffer: Uint8ClampedArray, size: Vector2)
 	canvas.height = size.y;
 	ctx.putImageData(new ImageData(buffer, size.x, size.y), 0, 0);
 }
+function showProgress(progress: number)
+{
+	$("#render-progress").classList.add("show");
+	$("#render-progress .progress").style.width = `${progress * 100}%`;
+}
 function renderCaller(code: string, mode: "preview" | "raytrace")
 {
 	const option: RenderOption = {
@@ -233,14 +238,15 @@ function renderCaller(code: string, mode: "preview" | "raytrace")
 		}
 		else if (mode == "raytrace")
 		{
+			showProgress(0);
 			raytraceController.process(code, option,
-				(progress) =>
-				{
-					display(progress.buffer, option.viewport.size);
-				},
 				(complete) =>
 				{
 					display(complete.buffer, option.viewport.size);
+				}, (progress) =>
+				{
+					showProgress(progress.progress);
+					display(progress.buffer, option.viewport.size);
 				});
 		}
 	}
