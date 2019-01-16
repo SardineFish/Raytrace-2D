@@ -1640,52 +1640,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const trace_1 = __webpack_require__(/*! ./trace */ "./src/trace.ts");
 const lib_1 = __webpack_require__(/*! ./lib */ "./src/lib.ts");
 const seedrandom_1 = __importDefault(__webpack_require__(/*! seedrandom */ "./node_modules/seedrandom/index.js"));
-class RenderCmd {
-    constructor(renderOption) {
-        this.renderOption = null;
-        this.buffer = null;
-        this.xRange = null;
-        this.yRange = null;
-        this.renderOption = renderOption;
-    }
-}
-class RenderState {
-    constructor() {
-        this.progress = 0;
-        this.buffer = null;
-    }
-}
-function startRenderWorker(renderCmd, outputTarget) {
-    //renderCmd.buffer = new Uint8ClampedArray(renderCmd.xRange.length * renderCmd.yRange.length << 2);
-    let worker = new Worker("./build/renderWorker.js");
-    let ctx = outputTarget.getContext("2d");
-    worker.onmessage = (e) => {
-        let state = e.data;
-        let imgData = new ImageData(state.buffer, renderCmd.xRange.size, renderCmd.yRange.size);
-        ctx.putImageData(imgData, renderCmd.xRange.from, renderCmd.yRange.from);
-        if (state.progress >= 1)
-            worker.terminate();
-    };
-    renderCmd.buffer;
-    worker.postMessage(renderCmd, [renderCmd.buffer.buffer]);
-}
-function renderRaytrace(sdf, renderOption, outputTarget) {
-    //outputTarget.width = renderOption.width;
-    //outputTarget.height = renderOption.height;
-    /*
-        let renderCmd = new RenderCmd(renderOption);
-        renderCmd.xRange = new Range(0, renderOption.viewport.size.x);
-        renderCmd.yRange = new Range(0, renderOption.viewport.size.y);
-        
-        let imgDta = outputTarget.getContext("2d").getImageData(0, 0, renderOption.width, renderOption.height);
-        renderCmd.buffer = new Uint8ClampedArray(imgDta.data);
-        startRenderWorker(renderCmd, outputTarget);*/
-}
 function renderSDF(sdf, renderOption, outputBuffer) {
     const width = renderOption.viewport.size.x;
     const height = renderOption.viewport.size.y;
     const antiAliasThreshold = 1;
-    let imgData = new ImageData(outputBuffer, width, height);
     for (let y = -height / 2 + 1; y <= height / 2; y++) {
         for (let x = -width / 2; x < width / 2; x++) {
             let [dst, mat] = sdf(x, y);
@@ -1757,22 +1715,7 @@ class Renderer {
                 buffer[idx + 2] = color.blue;
                 buffer[idx + 3] = Math.floor(color.alpha * 255);
             }
-            /*
-            let state = new RenderState();
-            state.buffer = new Uint8ClampedArray(buffer);
-            state.progress = y / height;
-            postMessage(state, undefined, [state.buffer.buffer]);*/
         }
-        //outputTarget.width = renderOption.width;
-        //outputTarget.height = renderOption.height;
-        /*
-        let renderCmd = new RenderCmd(renderOption);
-        renderCmd.xRange = new Range(0, renderOption.width);
-        renderCmd.yRange = new Range(0, renderOption.height);
-
-        let imgDta = outputTarget.getContext("2d").getImageData(0, 0, renderOption.width, renderOption.height);
-        renderCmd.buffer = new Uint8ClampedArray(imgDta.data);
-        startRenderWorker(renderCmd, outputTarget);*/
     }
     renderSDF(sdf, buffer) {
         renderSDF(sdf, this.options, buffer);
@@ -1858,16 +1801,6 @@ function process(renderCmd) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const lib_1 = __webpack_require__(/*! ./lib */ "./src/lib.ts");
-let BoundX = new lib_1.Range(-500, 500);
-let BoundY = new lib_1.Range(-500, 500);
-function setBound(boundX, boundY) {
-    BoundX = boundX;
-    BoundY = boundY;
-}
-/*function antiAlias(sdf: SDF, p: Vector2, colorCallback:Function): Vector4
-{
-    
-}*/
 class RayTracer2D {
     constructor(options) {
         this.options = options;

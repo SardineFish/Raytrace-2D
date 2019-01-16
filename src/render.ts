@@ -49,64 +49,11 @@ export interface ViewerOptions
     transform: Matrix3x3;// = new Matrix3x3();
 }
 
-class RenderCmd
-{
-    sdf: SDF;
-    renderOption: RenderOption = null;
-    buffer: Uint8ClampedArray = null;
-    xRange: Range = null;
-    yRange: Range = null;
-    constructor(renderOption: RenderOption)
-    {
-        this.renderOption = renderOption;
-    }
-}
-
-class RenderState
-{
-    progress: number = 0;
-    buffer: Uint8ClampedArray = null;
-}
-function startRenderWorker(renderCmd: RenderCmd, outputTarget: HTMLCanvasElement)
-{
-    //renderCmd.buffer = new Uint8ClampedArray(renderCmd.xRange.length * renderCmd.yRange.length << 2);
-
-    let worker = new Worker("./build/renderWorker.js");
-
-    let ctx = outputTarget.getContext("2d");
-    worker.onmessage = (e) =>
-    {
-        let state = e.data as RenderState;
-        let imgData = new ImageData(state.buffer, renderCmd.xRange.size, renderCmd.yRange.size);
-        ctx.putImageData(imgData, renderCmd.xRange.from, renderCmd.yRange.from);
-        if (state.progress >= 1)
-            worker.terminate();
-    };
-    renderCmd.buffer;
-    worker.postMessage(renderCmd, [renderCmd.buffer.buffer]);
-}
-
-function renderRaytrace(sdf: SDF, renderOption: RenderOption, outputTarget:HTMLCanvasElement)
-{
-    //outputTarget.width = renderOption.width;
-    //outputTarget.height = renderOption.height;
-/*
-    let renderCmd = new RenderCmd(renderOption);
-    renderCmd.xRange = new Range(0, renderOption.viewport.size.x);
-    renderCmd.yRange = new Range(0, renderOption.viewport.size.y);
-    
-    let imgDta = outputTarget.getContext("2d").getImageData(0, 0, renderOption.width, renderOption.height);
-    renderCmd.buffer = new Uint8ClampedArray(imgDta.data);
-    startRenderWorker(renderCmd, outputTarget);*/
-}
-
 function renderSDF(sdf: SDF, renderOption: RenderOption, outputBuffer: Uint8ClampedArray)
 {
     const width = renderOption.viewport.size.x;
     const height = renderOption.viewport.size.y;
     const antiAliasThreshold = 1;
-
-    let imgData = new ImageData(outputBuffer, width, height);
 
     for (let y = -height / 2 + 1; y <= height / 2; y++)
     {
@@ -205,23 +152,7 @@ export class Renderer
                 buffer[idx + 2] = color.blue;
                 buffer[idx + 3] = Math.floor(color.alpha * 255);
             }
-            /*
-            let state = new RenderState();
-            state.buffer = new Uint8ClampedArray(buffer);
-            state.progress = y / height;
-            postMessage(state, undefined, [state.buffer.buffer]);*/
         }
-        //outputTarget.width = renderOption.width;
-        //outputTarget.height = renderOption.height;
-
-        /*
-        let renderCmd = new RenderCmd(renderOption);
-        renderCmd.xRange = new Range(0, renderOption.width);
-        renderCmd.yRange = new Range(0, renderOption.height);
-
-        let imgDta = outputTarget.getContext("2d").getImageData(0, 0, renderOption.width, renderOption.height);
-        renderCmd.buffer = new Uint8ClampedArray(imgDta.data);
-        startRenderWorker(renderCmd, outputTarget);*/
     }
 
     renderSDF(sdf: SDF, buffer: Uint8ClampedArray)

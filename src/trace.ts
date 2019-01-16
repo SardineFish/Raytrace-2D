@@ -4,22 +4,6 @@ import seedrandom from "seedrandom";
 
 type SDFResult = [number, Material];
 type SDF = (x: number, y: number) => SDFResult;
-type SampleFunction = (sdf: SDF, p: Vector2, subdiv: number) => Vector4;
-
-let BoundX = new Range(-500, 500);
-let BoundY = new Range(-500, 500);
-
-
-function setBound(boundX: Range, boundY: Range)
-{
-    BoundX = boundX;
-    BoundY = boundY;
-}
-
-/*function antiAlias(sdf: SDF, p: Vector2, colorCallback:Function): Vector4
-{
-    
-}*/
 
 export class RayTracer2D
 {

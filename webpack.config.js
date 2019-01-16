@@ -5,8 +5,6 @@ module.exports= {
     entry: {
         main: "./src/main.ts",
         renderWorker: "./src/renderWorker.ts",
-        testWorker: "./src/testWorker.ts",
-        userLib:"./src/user-lib/user-lib.ts",
     },
     devtool:"source-map",
     output:{
