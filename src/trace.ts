@@ -48,7 +48,7 @@ export class RayTracer2D
         return material.emission.toVector4();
     }
 
-    sample(sdf: SDF, p: Vector2): Color
+    sample(sdf: SDF, p: Vector2, rand:seedrandom.prng): Color
     {
         const antiAliasThreshold = 1;
         let sampleFunction: (sdf: SDF, p: Vector2, rand: seedrandom.prng, offset?: number) => IterableIterator<Vector4>;
@@ -68,7 +68,7 @@ export class RayTracer2D
         let color = vec4(0, 0, 0, 0);
         const N = this.options.raytrace.subDivide;
         
-        for (const c of sampleFunction(sdf, p, null))
+        for (const c of sampleFunction(sdf, p, rand))
         {
             color = plus(color, c);
         }
@@ -79,7 +79,7 @@ export class RayTracer2D
             let grad = new Vector2(gradient(sdf, p.x, p.y, 0.1));
             let pN = minus(p, scale(grad.normalized, antiAliasThreshold));
             let antiAliasColor = vec4(0, 0, 0, 0);
-            for (const c of sampleFunction(sdf, pN, null))
+            for (const c of sampleFunction(sdf, pN, rand))
             {
                 antiAliasColor = plus(color, c);
             }
@@ -110,10 +110,12 @@ export class RayTracer2D
         let n = 0;
         const distance = sdf(p.x, p.y)[0];
         let antiAliasIterator: IterableIterator<Vector4> = null;
+        let grad: Vector2;
+        let pN: Vector2;
         if (0 <= distance && distance <= antiAliasThreshold)
         {
-            let grad = new Vector2(gradient(sdf, p.x, p.y, 0.1));
-            let pN = minus(p, scale(grad.normalized, antiAliasThreshold));
+            grad = new Vector2(gradient(sdf, p.x, p.y, 0.1));
+            pN = minus(p, scale(grad.normalized, antiAliasThreshold));
             antiAliasIterator = sampleFunction(sdf, pN, rand, offset);
         }
         for (const c of sampleFunction(sdf, p, rand, offset))
@@ -154,12 +156,13 @@ export class RayTracer2D
     *jitteredSample(sdf: SDF, p: Vector2, rand: seedrandom.prng, offset: number = 0)
     {
         let color: Vector4 = vec4(0, 0, 0, 1);
+        let rad: number;
         //const offset = Math.floor(this.options.raytrace.subDivide * Math.random());
         offset = Math.floor(this.options.raytrace.subDivide * rand()) + offset;
         for (let i = 0; i < this.options.raytrace.subDivide; i++)
         {
             
-            let rad = Math.PI * 2 * ((i + offset) % this.options.raytrace.subDivide + rand()) / this.options.raytrace.subDivide;
+            rad = Math.PI * 2 * ((i + offset) % this.options.raytrace.subDivide + rand()) / this.options.raytrace.subDivide;
             yield this.trace(sdf, p, vec2(Math.cos(rad), Math.sin(rad)));
             //color = <Vector4>plus(this.trace(sdf, p, vec2(Math.cos(rad), Math.sin(rad))), color);
         }

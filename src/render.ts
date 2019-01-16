@@ -1,5 +1,6 @@
 import { RayTracer2D } from "./trace";
 import { Color, Material, Range, Matrix3x3, Vector2 } from "./lib";
+import seedrandom from "seedrandom";
 
 type SDFResult = [number, Material];
 type SDF = (x: number, y: number) => SDFResult;
@@ -155,23 +156,26 @@ export class Renderer
     {
         const pixelRenderer: IterableIterator<Color>[][] = [];
         const [width, height] = this.options.viewport.size;
+        let p: Vector2;
         for (let y = 0; y < height; y++)
         {
             pixelRenderer.push([]);
             for (let x = 0; x < width; x++)
             {
-                let p = Matrix3x3.multiplePoint(this.options.viewport.transform, new Vector2(x, y));
+                p = Matrix3x3.multiplePoint(this.options.viewport.transform, new Vector2(x, y));
                 pixelRenderer[y].push(this.raytracer.sampleIterator(sdf, p, rand, offset));
             }
         }
+        let idx: number = 0;
+        let color: Color;
         for (var i = 1; i <= this.options.raytrace.subDivide; i++)
         {
             for (let y = 0; y < height; y++)
             {
                 for (let x = 0; x < width; x++)
                 {
-                    let idx = (y * width + x) * 4;
-                    let color = pixelRenderer[y][x].next().value;
+                    idx = (y * width + x) * 4;
+                    color = pixelRenderer[y][x].next().value;
                     buffer[idx] = color.red;
                     buffer[idx + 1] = color.green;
                     buffer[idx + 2] = color.blue;
@@ -188,13 +192,14 @@ export class Renderer
     renderRaytrace(sdf: SDF, buffer: Uint8ClampedArray)
     {
         const [width, height] = this.options.viewport.size;
+        const rand = seedrandom.alea(Date.now().toString());
         for (let y = 0; y < height; y++)
         {
             for (let x = 0; x < width; x++)
             {
                 let idx = (y * width + x) * 4;
                 let p = Matrix3x3.multiplePoint(this.options.viewport.transform, new Vector2(x, y));
-                let color = this.raytracer.sample(sdf, p);
+                let color = this.raytracer.sample(sdf, p, rand);
                 buffer[idx] = color.red;
                 buffer[idx + 1] = color.green;
                 buffer[idx + 2] = color.blue;

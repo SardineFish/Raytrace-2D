@@ -4,6 +4,7 @@ import { circle, rect, torus, belt, capsule } from "./shape";
 import { RenderOption, Renderer, RenderCommand, RenderResult } from "./render";
 import * as ace from "../lib/ace-builds";
 import { PreviewController, RaytraceRenderController, RenderProgress } from "./render-controller";
+import seedrandom from "seedrandom";
 require("../lib/ace-builds/src-noconflict/ext-language_tools");
 /*type SDFResult = [number, Color];
 type SDF = (x: number, y: number) => SDFResult;*/
@@ -261,6 +262,16 @@ function renderCaller(code: string, mode: "preview" | "raytrace")
 		}
 		else if (mode == "raytrace")
 		{
+			/*let renderer = new Renderer(option);
+			var buffer = new Uint8ClampedArray(option.viewport.size.x * option.viewport.size.y * 4);
+			//renderer.renderRaytrace(sdf, new Uint8ClampedArray(option.viewport.size.x * option.viewport.size.y * 4));
+			
+			for (const result of renderer.renderRaytraceIterator(sdf, buffer, seedrandom.alea(Date.now().toString())))
+			{
+				display(buffer, option.viewport.size);
+			}
+			renderer = null;
+			return;*/
 			showProgress(0);
 			raytraceController.process(code, option,
 				(complete) =>

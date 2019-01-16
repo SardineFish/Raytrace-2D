@@ -1633,9 +1633,13 @@ exports.gradient = gradient;
 
 "use strict";
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const trace_1 = __webpack_require__(/*! ./trace */ "./src/trace.ts");
 const lib_1 = __webpack_require__(/*! ./lib */ "./src/lib.ts");
+const seedrandom_1 = __importDefault(__webpack_require__(/*! seedrandom */ "./node_modules/seedrandom/index.js"));
 class RenderCmd {
     constructor(renderOption) {
         this.renderOption = null;
@@ -1713,18 +1717,21 @@ class Renderer {
     *renderRaytraceIterator(sdf, buffer, rand, offset = 0) {
         const pixelRenderer = [];
         const [width, height] = this.options.viewport.size;
+        let p;
         for (let y = 0; y < height; y++) {
             pixelRenderer.push([]);
             for (let x = 0; x < width; x++) {
-                let p = lib_1.Matrix3x3.multiplePoint(this.options.viewport.transform, new lib_1.Vector2(x, y));
+                p = lib_1.Matrix3x3.multiplePoint(this.options.viewport.transform, new lib_1.Vector2(x, y));
                 pixelRenderer[y].push(this.raytracer.sampleIterator(sdf, p, rand, offset));
             }
         }
+        let idx = 0;
+        let color;
         for (var i = 1; i <= this.options.raytrace.subDivide; i++) {
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
-                    let idx = (y * width + x) * 4;
-                    let color = pixelRenderer[y][x].next().value;
+                    idx = (y * width + x) * 4;
+                    color = pixelRenderer[y][x].next().value;
                     buffer[idx] = color.red;
                     buffer[idx + 1] = color.green;
                     buffer[idx + 2] = color.blue;
@@ -1739,11 +1746,12 @@ class Renderer {
     }
     renderRaytrace(sdf, buffer) {
         const [width, height] = this.options.viewport.size;
+        const rand = seedrandom_1.default.alea(Date.now().toString());
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
                 let idx = (y * width + x) * 4;
                 let p = lib_1.Matrix3x3.multiplePoint(this.options.viewport.transform, new lib_1.Vector2(x, y));
-                let color = this.raytracer.sample(sdf, p);
+                let color = this.raytracer.sample(sdf, p, rand);
                 buffer[idx] = color.red;
                 buffer[idx + 1] = color.green;
                 buffer[idx + 2] = color.blue;
@@ -1877,7 +1885,7 @@ class RayTracer2D {
         } while (distance > this.options.raytrace.hitThreshold);
         return material.emission.toVector4();
     }
-    sample(sdf, p) {
+    sample(sdf, p, rand) {
         const antiAliasThreshold = 1;
         let sampleFunction;
         switch (this.options.raytrace.sampleFunction) {
@@ -1894,7 +1902,7 @@ class RayTracer2D {
         sampleFunction = sampleFunction.bind(this);
         let color = lib_1.vec4(0, 0, 0, 0);
         const N = this.options.raytrace.subDivide;
-        for (const c of sampleFunction(sdf, p, null)) {
+        for (const c of sampleFunction(sdf, p, rand)) {
             color = lib_1.plus(color, c);
         }
         const distance = sdf(p.x, p.y)[0];
@@ -1902,7 +1910,7 @@ class RayTracer2D {
             let grad = new lib_1.Vector2(lib_1.gradient(sdf, p.x, p.y, 0.1));
             let pN = lib_1.minus(p, lib_1.scale(grad.normalized, antiAliasThreshold));
             let antiAliasColor = lib_1.vec4(0, 0, 0, 0);
-            for (const c of sampleFunction(sdf, pN, null)) {
+            for (const c of sampleFunction(sdf, pN, rand)) {
                 antiAliasColor = lib_1.plus(color, c);
             }
             return lib_1.Color.blend(lib_1.mapColor(antiAliasColor, 1 / N), lib_1.mapColor(color, 1 / N), distance / antiAliasThreshold);
@@ -1929,9 +1937,11 @@ class RayTracer2D {
         let n = 0;
         const distance = sdf(p.x, p.y)[0];
         let antiAliasIterator = null;
+        let grad;
+        let pN;
         if (0 <= distance && distance <= antiAliasThreshold) {
-            let grad = new lib_1.Vector2(lib_1.gradient(sdf, p.x, p.y, 0.1));
-            let pN = lib_1.minus(p, lib_1.scale(grad.normalized, antiAliasThreshold));
+            grad = new lib_1.Vector2(lib_1.gradient(sdf, p.x, p.y, 0.1));
+            pN = lib_1.minus(p, lib_1.scale(grad.normalized, antiAliasThreshold));
             antiAliasIterator = sampleFunction(sdf, pN, rand, offset);
         }
         for (const c of sampleFunction(sdf, p, rand, offset)) {
@@ -1963,10 +1973,11 @@ class RayTracer2D {
     }
     *jitteredSample(sdf, p, rand, offset = 0) {
         let color = lib_1.vec4(0, 0, 0, 1);
+        let rad;
         //const offset = Math.floor(this.options.raytrace.subDivide * Math.random());
         offset = Math.floor(this.options.raytrace.subDivide * rand()) + offset;
         for (let i = 0; i < this.options.raytrace.subDivide; i++) {
-            let rad = Math.PI * 2 * ((i + offset) % this.options.raytrace.subDivide + rand()) / this.options.raytrace.subDivide;
+            rad = Math.PI * 2 * ((i + offset) % this.options.raytrace.subDivide + rand()) / this.options.raytrace.subDivide;
             yield this.trace(sdf, p, lib_1.vec2(Math.cos(rad), Math.sin(rad)));
             //color = <Vector4>plus(this.trace(sdf, p, vec2(Math.cos(rad), Math.sin(rad))), color);
         }

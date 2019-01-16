@@ -27196,6 +27196,16 @@ function renderCaller(code, mode) {
             }
         }
         else if (mode == "raytrace") {
+            /*let renderer = new Renderer(option);
+            var buffer = new Uint8ClampedArray(option.viewport.size.x * option.viewport.size.y * 4);
+            //renderer.renderRaytrace(sdf, new Uint8ClampedArray(option.viewport.size.x * option.viewport.size.y * 4));
+            
+            for (const result of renderer.renderRaytraceIterator(sdf, buffer, seedrandom.alea(Date.now().toString())))
+            {
+                display(buffer, option.viewport.size);
+            }
+            renderer = null;
+            return;*/
             showProgress(0);
             raytraceController.process(code, option, (complete) => {
                 display(complete.buffer, option.viewport.size);
