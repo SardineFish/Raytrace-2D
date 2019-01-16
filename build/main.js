@@ -27213,6 +27213,8 @@ function init() {
             autoScrollEditorIntoView: true,
             hScrollBarAlwaysVisible: true,
             vScrollBarAlwaysVisible: true,
+            fontSize: "11pt",
+            fontFamily: "consolas"
         });
         editor.setTheme("ace/theme/monokai");
         editor.session.setMode("ace/mode/javascript");
