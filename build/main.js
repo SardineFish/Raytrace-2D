@@ -26648,8 +26648,24 @@ const length = (x, y) => sqrt(x * x + y * y);
 exports.length = length;
 const clamp = (n, min, max) => n > max ? max : n < min ? min : n;
 exports.clamp = clamp;
-const smin = (a, b, k) => -Math.log(Math.exp(-k * a) + Math.exp(-k * b)) / k;
+const interpolate = (a, b, t) => a + (b - a) * t;
+function smin(a, b, k) {
+    if (typeof (a) === "number" && typeof (b) === "number") {
+        const h = Math.max(k - Math.abs(a - b), 0) / k;
+        return Math.min(a, b) - h * h * k * 0.25;
+    }
+    else {
+        a = a;
+        b = b;
+        return new Vector4(smin(a[0], b[0], k), smin(a[1], b[1], k), smin(a[2], b[2], k), smin(a[3], b[3], k));
+    }
+}
 exports.smin = smin;
+function mix(a, b, k) {
+    const h = Math.max(k - Math.abs(a - b), 0) / k;
+    return 1 - ((h * h - 1) * Math.sign(a - b) * 0.5 + 0.5);
+}
+exports.mix = mix;
 class Vector2 extends Array {
     constructor(x, y = 0) {
         super(4);
@@ -26877,14 +26893,30 @@ class Matrix3x3 extends Array {
 }
 exports.Matrix3x3 = Matrix3x3;
 class Material {
-    constructor(emission = new Color(0, 0, 0, 1.0)) {
+    constructor(options = new Color(0, 0, 0, 1.0)) {
         this.diffuseColor = new Color(0, 0, 0, 1.0);
         this.reflectivity = 0;
         this.refractivity = 0;
         this.emission = new Color(0, 0, 0, 1.0);
-        this.emission = emission;
+        if (options instanceof Color)
+            this.emission = options;
+        else {
+            this.emission = options.emission || this.emission;
+            this.diffuseColor = options.diffuse || this.diffuseColor;
+            this.reflectivity = options.reflect || this.reflectivity;
+            this.refractivity = options.refrect || this.refractivity;
+        }
+    }
+    static blend(m1, m2, k) {
+        return new Material({
+            emission: Color.blend(m1.emission, m2.emission, k),
+            diffuse: Color.blend(m1.diffuseColor, m2.diffuseColor, k),
+            reflect: interpolate(m1.reflectivity, m2.reflectivity, k),
+            refrect: interpolate(m1.refractivity, m2.refractivity, k)
+        });
     }
 }
+Material.default = new Material(new Color(255, 255, 255, 1));
 exports.Material = Material;
 function mapColor(v, k) {
     return new Color(v.x * k * 255, v.y * k * 255, v.z * k * 255, 1.0);
@@ -27155,9 +27187,13 @@ function renderCaller(code, mode) {
     };
     function render(sdf) {
         if (mode == "preview" && option.preview) {
-            previewController.render(code, option, (result) => {
-                display(result.buffer, option.viewport.size);
-            });
+            if (raytraceController.state != "rendering") {
+                /*const renderer = new Renderer(option);
+                renderer.renderSDF(sdf, new Uint8ClampedArray(option.viewport.size.x * option.viewport.size.y * 4));*/
+                previewController.render(code, option, (result) => {
+                    display(result.buffer, option.viewport.size);
+                });
+            }
         }
         else if (mode == "raytrace") {
             showProgress(0);
@@ -27188,8 +27224,8 @@ function renderCaller(code, mode) {
             option.raytrace.subDivide = config.raytrace.subDivide || 64;
         }
         option.renderOrder = config.renderOrder || "progressive";
-        option.antiAlias = config.antiAlias === undefined ? true : option.antiAlias;
-        option.preview = config.preview === undefined ? true : option.preview;
+        option.antiAlias = config.antiAlias === undefined ? true : config.antiAlias;
+        option.preview = config.preview === undefined ? true : config.preview;
         option.thread = config.thread || 4;
     }
     config({});
@@ -27747,11 +27783,16 @@ exports.displace = displace;
  * @returns {SDF}
  */
 function blend(sdf1, sdf2, k) {
-    const material1 = sdf1(0, 0)["1"];
-    const material2 = sdf2(0, 0)["1"];
+    const material1 = sdf1(0, 0)[1];
+    const material2 = sdf2(0, 0)[1];
     const material = new lib_1.Material();
     material.emission = new lib_1.Color(lib_1.smin(material1.emission.red, material2.emission.red, k), lib_1.smin(material1.emission.green, material2.emission.green, k), lib_1.smin(material1.emission.blue, material2.emission.blue, k), lib_1.smin(material1.emission.alpha, material2.emission.alpha, k));
-    return (x, y) => [lib_1.smin(sdf1(x, y)["0"], sdf2(x, y)["0"], k), material];
+    return (x, y) => {
+        const [d1, m1] = sdf1(x, y);
+        const [d2, m2] = sdf2(x, y);
+        return [lib_1.smin(d1, d2, k), lib_1.Material.blend(m1, m2, lib_1.mix(d1, d2, k))];
+        //return [smin(d1, d2, k), new Material(mapColor(smin(m1.emission.toVector4(), m2.emission.toVector4(), k), 1))];
+    };
 }
 exports.blend = blend;
 /**

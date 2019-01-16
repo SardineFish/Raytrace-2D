@@ -103,7 +103,7 @@ function renderSDF(sdf: SDF, renderOption: RenderOption, outputBuffer: Uint8Clam
 {
     const width = renderOption.viewport.size.x;
     const height = renderOption.viewport.size.y;
-    const threshold = 1;
+    const antiAliasThreshold = 1;
 
     let imgData = new ImageData(outputBuffer, width, height);
 
@@ -115,9 +115,9 @@ function renderSDF(sdf: SDF, renderOption: RenderOption, outputBuffer: Uint8Clam
             let color = renderOption.environment.backgroundColor;
             if (dst <= 0)
                 color = mat.emission;
-            else if (dst < threshold)
+            else if (renderOption.antiAlias && dst < antiAliasThreshold)
             {
-                var t = dst / threshold;
+                var t = dst / antiAliasThreshold;
                 color = Color.blend(renderOption.environment.backgroundColor, mat.emission, 1 - t);
             }
 

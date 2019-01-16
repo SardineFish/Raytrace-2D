@@ -1,4 +1,4 @@
-import { smin, Color, Material } from "./lib";
+import { smin, Color, Material, mix } from "./lib";
 type SDFResult = [number, Material];
 type SDF = (x: number, y: number) => SDFResult;
 /**
@@ -192,10 +192,10 @@ function displace(sdf1:SDF, sdf2:SDF):SDF
  * @param {Number} k 
  * @returns {SDF}
  */
-function blend(sdf1: SDF, sdf2: SDF, k:number):SDF
+function blend(sdf1: SDF, sdf2: SDF, k: number): SDF
 {
-    const material1 = sdf1(0, 0)["1"];
-    const material2 = sdf2(0, 0)["1"];
+    const material1 = sdf1(0, 0)[1];
+    const material2 = sdf2(0, 0)[1];
     const material = new Material();
     material.emission = new Color(
         smin(material1.emission.red, material2.emission.red, k),
@@ -203,7 +203,13 @@ function blend(sdf1: SDF, sdf2: SDF, k:number):SDF
         smin(material1.emission.blue, material2.emission.blue, k),
         smin(material1.emission.alpha, material2.emission.alpha, k));
 
-    return (x, y) => [smin(sdf1(x, y)["0"], sdf2(x, y)["0"], k), material];
+    return (x, y) =>
+    {
+        const [d1, m1] = sdf1(x, y);
+        const [d2, m2] = sdf2(x, y);
+        return [smin(d1, d2, k), Material.blend(m1, m2, mix(d1, d2, k))];
+        //return [smin(d1, d2, k), new Material(mapColor(smin(m1.emission.toVector4(), m2.emission.toVector4(), k), 1))];
+    }
 }
 
 /**

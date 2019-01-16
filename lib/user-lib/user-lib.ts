@@ -215,8 +215,8 @@ function displace(sdf1: SDF, sdf2: SDF): SDF
  */
 function blend(sdf1: SDF, sdf2: SDF, k: number): SDF
 {
-    const material1 = sdf1(0, 0)["1"];
-    const material2 = sdf2(0, 0)["1"];
+    const material1 = sdf1(0, 0)[1];
+    const material2 = sdf2(0, 0)[1];
     const material = new Material();
     material.emission = new Color(
         smin(material1.emission.red, material2.emission.red, k),
@@ -224,7 +224,13 @@ function blend(sdf1: SDF, sdf2: SDF, k: number): SDF
         smin(material1.emission.blue, material2.emission.blue, k),
         smin(material1.emission.alpha, material2.emission.alpha, k));
 
-    return (x, y) => [smin(sdf1(x, y)["0"], sdf2(x, y)["0"], k), material];
+    return (x, y) =>
+    {
+        const [d1, m1] = sdf1(x, y);
+        const [d2, m2] = sdf2(x, y);
+        return [smin(d1, d2, k), Material.blend(m1, m2, mix(d1, d2, k))];
+        //return [smin(d1, d2, k), new Material(mapColor(smin(m1.emission.toVector4(), m2.emission.toVector4(), k), 1))];
+    }
 }
 function material(sdf: SDF, color: Color):SDF
 function material(sdf: SDF, material: Material): SDF
@@ -413,7 +419,34 @@ const sqrt = Math.sqrt;
 const abs = Math.abs;
 const length = (x: number, y: number): number => sqrt(x * x + y * y);
 const clamp = (n: number, min: number, max: number): number => n > max ? max : n < min ? min : n;
-const smin = (a: number, b: number, k: number): number => -Math.log(Math.exp(-k * a) + Math.exp(-k * b)) / k;
+const interpolate = (a: number, b: number, t: number) => a + (b - a) * t;
+function smin(a: number, b: number, k: number): number
+function smin(u: Vector4, v: Vector4, k: number): Vector4
+function smin(a: number | Vector4, b: number | Vector4, k: number): number | Vector4
+{
+    if (typeof (a) === "number" && typeof (b) === "number")
+    {
+        const h = Math.max(k - Math.abs(a - b), 0) / k;
+        return Math.min(a, b) - h * h * k * 0.25;
+    }
+    else 
+    {
+        a = a as Vector4;
+        b = b as Vector4;
+        return new Vector4(
+            smin(a[0], b[0], k),
+            smin(a[1], b[1], k),
+            smin(a[2], b[2], k),
+            smin(a[3], b[3], k)
+        );
+    }
+}
+function mix(a: number, b: number, k: number)
+{
+    const h = Math.max(k - Math.abs(a - b), 0) / k;
+    return 1 - ((h * h - 1) * Math.sign(a - b) * 0.5 + 0.5);
+}
+
 
 class Vector2 extends Array<number>
 {
@@ -736,6 +769,15 @@ class Material
             this.reflectivity = options.reflect || this.reflectivity;
             this.refractivity = options.refrect || this.refractivity;
         }
+    }
+    static blend(m1: Material, m2: Material, k: number)
+    {
+        return new Material({
+            emission: Color.blend(m1.emission, m2.emission, k),
+            diffuse: Color.blend(m1.diffuseColor, m2.diffuseColor, k),
+            reflect: interpolate(m1.reflectivity, m2.reflectivity, k),
+            refrect: interpolate(m1.refractivity, m2.refractivity, k)
+        });
     }
 }
 

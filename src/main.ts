@@ -249,10 +249,15 @@ function renderCaller(code: string, mode: "preview" | "raytrace")
 	{
 		if (mode == "preview" && option.preview)
 		{
-			previewController.render(code, option, (result) =>
+			if (raytraceController.state != "rendering")
 			{
-				display(result.buffer, option.viewport.size);
-			});
+				/*const renderer = new Renderer(option);
+				renderer.renderSDF(sdf, new Uint8ClampedArray(option.viewport.size.x * option.viewport.size.y * 4));*/
+				previewController.render(code, option, (result) =>
+				{
+					display(result.buffer, option.viewport.size);
+				});
+			}
 		}
 		else if (mode == "raytrace")
 		{
@@ -291,8 +296,8 @@ function renderCaller(code: string, mode: "preview" | "raytrace")
 			option.raytrace.subDivide = config.raytrace.subDivide || 64;
 		}
 		option.renderOrder = config.renderOrder || "progressive";
-		option.antiAlias = config.antiAlias === undefined ? true : option.antiAlias;
-		option.preview = config.preview === undefined ? true : option.preview;
+		option.antiAlias = config.antiAlias === undefined ? true : config.antiAlias;
+		option.preview = config.preview === undefined ? true : config.preview;
 		option.thread = config.thread || 4;
 		
 	}

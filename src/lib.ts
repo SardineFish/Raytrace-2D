@@ -178,7 +178,34 @@ const sqrt = Math.sqrt;
 const abs = Math.abs;
 const length = (x:number, y:number): number => sqrt(x * x + y * y);
 const clamp = (n: number, min: number, max: number): number => n > max ? max : n < min ? min : n;
-const smin = (a: number, b: number, k: number): number => -Math.log(Math.exp(-k * a) + Math.exp(-k * b)) / k;
+const interpolate = (a: number, b: number, t: number) => a + (b - a) * t;
+function smin(a: number, b: number, k: number): number
+function smin(u: Vector4, v: Vector4, k: number): Vector4
+function smin(a: number | Vector4, b: number | Vector4, k: number): number | Vector4
+{
+    if (typeof (a) === "number" && typeof (b) === "number")
+    {
+        const h = Math.max(k - Math.abs(a - b), 0) / k;
+        return Math.min(a, b) - h * h * k * 0.25;
+    }
+    else 
+    {
+        a = a as Vector4;
+        b = b as Vector4;
+        return new Vector4(
+            smin(a[0], b[0], k),
+            smin(a[1], b[1], k),
+            smin(a[2], b[2], k),
+            smin(a[3], b[3], k)
+        );
+    }
+}
+export function mix(a: number, b: number, k: number)
+{
+    const h = Math.max(k - Math.abs(a - b), 0) / k;
+    return 1 - ((h * h - 1) * Math.sign(a - b) * 0.5 + 0.5);
+}
+
 
 class Vector2 extends Array<number>
 {
@@ -473,15 +500,43 @@ class Matrix3x3 extends Array<Array<number>>
         return this;
     }
 }
+interface MaterialOptions
+{
+    diffuse?: Color;
+    reflect?: number;
+    refrect?: number;
+    emission?: Color;
+}
 class Material
 {
     diffuseColor: Color = new Color(0, 0, 0, 1.0);
     reflectivity: number = 0;
     refractivity: number = 0;
     emission: Color = new Color(0, 0, 0, 1.0);
-    constructor(emission: Color = new Color(0, 0, 0, 1.0))
+    static default = new Material(new Color(255, 255, 255, 1));
+    constructor()
+    constructor(emission: Color)
+    constructor(options: MaterialOptions)
+    constructor(options: Color | MaterialOptions = new Color(0, 0, 0, 1.0))
     {
-        this.emission = emission;
+        if (options instanceof Color)
+            this.emission = options;
+        else
+        {
+            this.emission = options.emission || this.emission;
+            this.diffuseColor = options.diffuse || this.diffuseColor;
+            this.reflectivity = options.reflect || this.reflectivity;
+            this.refractivity = options.refrect || this.refractivity;
+        }
+    }
+    static blend(m1: Material, m2: Material, k: number)
+    {
+        return new Material({
+            emission: Color.blend(m1.emission, m2.emission, k),
+            diffuse: Color.blend(m1.diffuseColor, m2.diffuseColor, k),
+            reflect: interpolate(m1.reflectivity, m2.reflectivity, k),
+            refrect: interpolate(m1.refractivity, m2.refractivity, k)
+        });
     }
 }
 
