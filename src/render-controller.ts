@@ -17,7 +17,7 @@ export class RaytraceRenderController
     workers: Worker[] = [];
     workerProgress: number[] = [];
     state: "rendering" | "ready" = "ready";
-    process(code: string, option: RenderOption, complete: (result: RenderResult) => void, onProgress?: (result: RenderResult) => void)
+    process(code: string, option: RenderOption, complete: (result: RenderResult) => void, onProgress?: (result: RenderProgress) => void)
     {
         if (this.state != "ready")
             return;
@@ -48,19 +48,41 @@ export class RaytraceRenderController
                     }
                     mix[i] = sum / option.thread;
                 } 
-                onProgress({
+                /*onProgress({
                     progress: linq.from(this.workerProgress).sum() / this.workers.length,
                     buffer: mix
-                });
+                });*/
                 if (linq.from(this.workerProgress).sum() == option.thread)
                 {
-                    this.cleanup();
-                    complete({
-                        progress: 1,
-                        buffer: mix
-                    });
                 }
             }
+            const startTime = Date.now();
+            const timer = () =>
+            {
+                const spend = Date.now() - startTime;
+                const progress = linq.from(this.workerProgress).sum() / this.workers.length;
+                const estimate = progress > 0 ? spend / progress - spend : -1;
+                if (onProgress)
+                    onProgress({
+                        spend: spend,
+                        estimate: estimate,
+                        progress: progress,
+                        buffer: mix
+                    });
+                if (progress >= 1)
+                {
+
+                    this.cleanup();
+                    complete({
+                        buffer: mix,
+                        progress: 1
+                    });
+                }
+                    
+                if (this.state == "rendering")
+                    setTimeout(timer, 1000);
+            };
+            timer();
         }
         const seed = Date.now();
         this.workers.forEach((worker, idx) => worker.postMessage(<RenderCommand>{

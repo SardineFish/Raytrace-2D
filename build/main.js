@@ -27109,9 +27109,23 @@ function display(buffer, size) {
     canvas.height = size.y;
     ctx.putImageData(new ImageData(buffer, size.x, size.y), 0, 0);
 }
+function formatNumber(x) {
+    return x > 10 ? x.toString() : "0" + x.toString();
+}
+function formatTime(time) {
+    return time > 0
+        ? `${formatNumber(Math.floor(time / 3600000))}:${formatNumber(Math.floor(time % 3600000 / 60000))}:${formatNumber(Math.floor(time % 60000 / 1000))}`
+        : "--:--:--";
+}
 function showProgress(progress) {
     $("#render-progress").classList.add("show");
-    $("#render-progress .progress").style.width = `${progress * 100}%`;
+    if (typeof (progress) === "number")
+        $("#render-progress .progress").style.width = `${progress * 100}%`;
+    else {
+        $("#render-progress .progress").style.width = `${progress.progress * 100}%`;
+        $("#time-spend").innerText = formatTime(progress.spend);
+        $("#time-est").innerText = formatTime(progress.estimate);
+    }
 }
 function renderCaller(code, mode) {
     const option = {
@@ -27150,7 +27164,7 @@ function renderCaller(code, mode) {
             raytraceController.process(code, option, (complete) => {
                 display(complete.buffer, option.viewport.size);
             }, (progress) => {
-                showProgress(progress.progress);
+                showProgress(progress);
                 display(progress.buffer, option.viewport.size);
             });
         }
@@ -27302,18 +27316,36 @@ class RaytraceRenderController {
                     }
                     mix[i] = sum / option.thread;
                 }
-                onProgress({
-                    progress: linq_1.default.from(this.workerProgress).sum() / this.workers.length,
+                /*onProgress({
+                    progress: linq.from(this.workerProgress).sum() / this.workers.length,
                     buffer: mix
-                });
+                });*/
                 if (linq_1.default.from(this.workerProgress).sum() == option.thread) {
-                    this.cleanup();
-                    complete({
-                        progress: 1,
-                        buffer: mix
-                    });
                 }
             };
+            const startTime = Date.now();
+            const timer = () => {
+                const spend = Date.now() - startTime;
+                const progress = linq_1.default.from(this.workerProgress).sum() / this.workers.length;
+                const estimate = progress > 0 ? spend / progress - spend : -1;
+                if (onProgress)
+                    onProgress({
+                        spend: spend,
+                        estimate: estimate,
+                        progress: progress,
+                        buffer: mix
+                    });
+                if (progress >= 1) {
+                    this.cleanup();
+                    complete({
+                        buffer: mix,
+                        progress: 1
+                    });
+                }
+                if (this.state == "rendering")
+                    setTimeout(timer, 1000);
+            };
+            timer();
         }
         const seed = Date.now();
         this.workers.forEach((worker, idx) => worker.postMessage({

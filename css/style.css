@@ -142,3 +142,12 @@ body{
 #render-progress.show{
     opacity: 1;
 }
+
+#time {
+    text-align: right;
+    color: #777;
+}
+#time > span{
+    display: inline-block;
+    width: 10em;
+}

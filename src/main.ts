@@ -3,7 +3,7 @@ import { scale, translate, union, rotate, expand, subtract, displace, blend, wra
 import { circle, rect, torus, belt, capsule } from "./shape";
 import { RenderOption, Renderer, RenderCommand, RenderResult } from "./render";
 import * as ace from "../lib/ace-builds";
-import { PreviewController, RaytraceRenderController } from "./render-controller";
+import { PreviewController, RaytraceRenderController, RenderProgress } from "./render-controller";
 require("../lib/ace-builds/src-noconflict/ext-language_tools");
 /*type SDFResult = [number, Color];
 type SDF = (x: number, y: number) => SDFResult;*/
@@ -195,10 +195,28 @@ function display(buffer: Uint8ClampedArray, size: Vector2)
 	canvas.height = size.y;
 	ctx.putImageData(new ImageData(buffer, size.x, size.y), 0, 0);
 }
-function showProgress(progress: number)
+function formatNumber(x: number)
+{
+	return x > 10 ? x.toString() : "0" + x.toString();
+}
+function formatTime(time: number)
+{
+	return time > 0
+		? `${formatNumber(Math.floor(time / 3600000))}:${formatNumber(Math.floor(time % 3600000 / 60000))}:${formatNumber(Math.floor(time % 60000 / 1000))}`
+		: "--:--:--";
+		
+}
+function showProgress(progress: number | RenderProgress)
 {
 	$("#render-progress").classList.add("show");
-	$("#render-progress .progress").style.width = `${progress * 100}%`;
+	if (typeof (progress) === "number")
+		$("#render-progress .progress").style.width = `${progress * 100}%`;
+	else 
+	{
+		$("#render-progress .progress").style.width = `${progress.progress * 100}%`;
+		$("#time-spend").innerText = formatTime(progress.spend);
+		$("#time-est").innerText = formatTime(progress.estimate);
+	}
 }
 function renderCaller(code: string, mode: "preview" | "raytrace")
 {
@@ -245,7 +263,7 @@ function renderCaller(code: string, mode: "preview" | "raytrace")
 					display(complete.buffer, option.viewport.size);
 				}, (progress) =>
 				{
-					showProgress(progress.progress);
+					showProgress(progress);
 					display(progress.buffer, option.viewport.size);
 				});
 		}
