@@ -1760,8 +1760,8 @@ const lib_1 = __webpack_require__(/*! ./lib */ "./src/lib.ts");
 const render_1 = __webpack_require__(/*! ./render */ "./src/render.ts");
 const seedrandom_1 = __importDefault(__webpack_require__(/*! seedrandom */ "./node_modules/seedrandom/index.js"));
 onmessage = (e) => {
-    console.log("receive");
     let renderCmd = e.data;
+    console.log(`Worker #${renderCmd.index} started.`);
     process(renderCmd);
 };
 function report(result) {

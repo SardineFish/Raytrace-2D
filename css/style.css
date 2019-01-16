@@ -77,6 +77,7 @@ body{
     border-radius: 5px;
     cursor: pointer;
     user-select: none;
+    width: 5em;
 }
 .button:hover{
     background: #DDD;
@@ -150,4 +151,9 @@ body{
 #time > span{
     display: inline-block;
     width: 10em;
+}
+
+#button-abort {
+    margin-left: 2em;
+    color: #444;
 }

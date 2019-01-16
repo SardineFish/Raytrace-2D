@@ -261,6 +261,7 @@ function renderCaller(code: string, mode: "preview" | "raytrace")
 				(complete) =>
 				{
 					display(complete.buffer, option.viewport.size);
+					showProgress(complete.progress);
 				}, (progress) =>
 				{
 					showProgress(progress);
@@ -326,10 +327,14 @@ async function init()
 		.then((response) => response.text())
 		.then((lib) =>
 		{
-			$("#button-render").addEventListener("mousedown", () =>
+			$("#button-render").addEventListener("click", () =>
 			{
 				const code = editor.session.getDocument().getValue();
 				renderCaller(lib + code, "raytrace");
+			});
+			$("#button-abort").addEventListener("click", () =>
+			{
+				raytraceController.abort();
 			});
 		});
 

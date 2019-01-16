@@ -4,10 +4,9 @@ import seedrandom from "seedrandom";
 
 onmessage = (e) =>
 {
-    console.log("receive");
     let renderCmd = <RenderCommand>e.data;
+    console.log(`Worker #${renderCmd.index} started.`);
     process(renderCmd);
-    
 }
 
 function report(result: RenderResult)

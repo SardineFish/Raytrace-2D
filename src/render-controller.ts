@@ -12,15 +12,33 @@ export interface RenderProgress
     buffer: Uint8ClampedArray;
 }
 
+interface RenderSession
+{
+    code: string,
+    option: RenderOption,
+    progress: RenderProgress;
+    onProgress?: (result: RenderProgress) => void;
+    complete: (result: RenderResult) => void;
+}
+
 export class RaytraceRenderController
 {
     workers: Worker[] = [];
     workerProgress: number[] = [];
+    timer: number;
     state: "rendering" | "ready" = "ready";
+    session: RenderSession;
     process(code: string, option: RenderOption, complete: (result: RenderResult) => void, onProgress?: (result: RenderProgress) => void)
     {
         if (this.state != "ready")
             return;
+        this.session = {
+            code: code,
+            option: option,
+            complete: complete,
+            progress: null,
+            onProgress: onProgress
+        };
         option.raytrace.subDivide = Math.ceil(option.raytrace.subDivide / option.thread) * option.thread;
         this.state = "rendering";
         const mix = new Uint8ClampedArray(option.viewport.size.x * option.viewport.size.y * 4);
@@ -62,25 +80,27 @@ export class RaytraceRenderController
                 const spend = Date.now() - startTime;
                 const progress = linq.from(this.workerProgress).sum() / this.workers.length;
                 const estimate = progress > 0 ? spend / progress - spend : -1;
+                const renderProgress = {
+                    spend: spend,
+                    estimate: estimate,
+                    progress: progress,
+                    buffer: mix
+                };
+                if (this.session)
+                    this.session.progress = renderProgress;
                 if (onProgress)
-                    onProgress({
-                        spend: spend,
-                        estimate: estimate,
-                        progress: progress,
-                        buffer: mix
-                    });
+                    onProgress(renderProgress);
                 if (progress >= 1)
                 {
-
-                    this.cleanup();
                     complete({
                         buffer: mix,
                         progress: 1
                     });
+                    this.cleanup();
                 }
                     
                 if (this.state == "rendering")
-                    setTimeout(timer, 1000);
+                    this.timer = setTimeout(timer, 1000) as any;
             };
             timer();
         }
@@ -99,7 +119,20 @@ export class RaytraceRenderController
         this.workers.forEach(worker => worker.terminate());
         this.workers = [];
         this.workerProgress = [];
+        this.session = null;
         this.state = "ready";
+    }
+
+    public abort()
+    {
+        if (this.state != "rendering")
+            return;
+        clearTimeout(this.timer);
+        this.session.complete({
+            progress: 1,
+            buffer: this.session.progress.buffer
+        });
+        this.cleanup();
     }
 }
 

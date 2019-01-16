@@ -27163,6 +27163,7 @@ function renderCaller(code, mode) {
             showProgress(0);
             raytraceController.process(code, option, (complete) => {
                 display(complete.buffer, option.viewport.size);
+                showProgress(complete.progress);
             }, (progress) => {
                 showProgress(progress);
                 display(progress.buffer, option.viewport.size);
@@ -27218,9 +27219,12 @@ function init() {
         fetch("/lib/user-lib/build/user-lib.js")
             .then((response) => response.text())
             .then((lib) => {
-            $("#button-render").addEventListener("mousedown", () => {
+            $("#button-render").addEventListener("click", () => {
                 const code = editor.session.getDocument().getValue();
                 renderCaller(lib + code, "raytrace");
+            });
+            $("#button-abort").addEventListener("click", () => {
+                raytraceController.abort();
             });
         });
         //setBound(new Range(-width / 2, width / 2), new Range(-height / 2, height / 2));
@@ -27293,6 +27297,13 @@ class RaytraceRenderController {
     process(code, option, complete, onProgress) {
         if (this.state != "ready")
             return;
+        this.session = {
+            code: code,
+            option: option,
+            complete: complete,
+            progress: null,
+            onProgress: onProgress
+        };
         option.raytrace.subDivide = Math.ceil(option.raytrace.subDivide / option.thread) * option.thread;
         this.state = "rendering";
         const mix = new Uint8ClampedArray(option.viewport.size.x * option.viewport.size.y * 4);
@@ -27328,22 +27339,25 @@ class RaytraceRenderController {
                 const spend = Date.now() - startTime;
                 const progress = linq_1.default.from(this.workerProgress).sum() / this.workers.length;
                 const estimate = progress > 0 ? spend / progress - spend : -1;
+                const renderProgress = {
+                    spend: spend,
+                    estimate: estimate,
+                    progress: progress,
+                    buffer: mix
+                };
+                if (this.session)
+                    this.session.progress = renderProgress;
                 if (onProgress)
-                    onProgress({
-                        spend: spend,
-                        estimate: estimate,
-                        progress: progress,
-                        buffer: mix
-                    });
+                    onProgress(renderProgress);
                 if (progress >= 1) {
-                    this.cleanup();
                     complete({
                         buffer: mix,
                         progress: 1
                     });
+                    this.cleanup();
                 }
                 if (this.state == "rendering")
-                    setTimeout(timer, 1000);
+                    this.timer = setTimeout(timer, 1000);
             };
             timer();
         }
@@ -27360,7 +27374,18 @@ class RaytraceRenderController {
         this.workers.forEach(worker => worker.terminate());
         this.workers = [];
         this.workerProgress = [];
+        this.session = null;
         this.state = "ready";
+    }
+    abort() {
+        if (this.state != "rendering")
+            return;
+        clearTimeout(this.timer);
+        this.session.complete({
+            progress: 1,
+            buffer: this.session.progress.buffer
+        });
+        this.cleanup();
     }
 }
 exports.RaytraceRenderController = RaytraceRenderController;
