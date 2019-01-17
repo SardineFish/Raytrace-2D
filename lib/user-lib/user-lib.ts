@@ -238,6 +238,9 @@ function material(sdf: SDF, material: Material|Color):SDF
 {
     if (material instanceof Color)
         material = new Material(material);
+    const resultTest = sdf(Math.random(), Math.random());
+    if (typeof (resultTest) === "number")
+        return (x: number, y: number) => [sdf(x, y) as any as number, material as Material];
     return (x: number, y: number) => [sdf(x, y)[0], material as Material];
 }
 

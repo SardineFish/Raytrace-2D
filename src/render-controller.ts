@@ -166,26 +166,34 @@ export class PreviewController
             clearTimeout(this.scheduledRender);
         this.scheduledRender = setTimeout(() =>
         {
-            this.state = "rendering";
-            this.scheduledRender = 0;
-            this.worker.onmessage = (e) =>
+            try
             {
-                complete(e.data as RenderResult);
-                this.state = "ready";
-                if (this.pending)
+                this.state = "rendering";
+                this.scheduledRender = 0;
+                this.worker.onmessage = (e) =>
                 {
-                    let code = this.pending.code;
-                    let option = this.pending.option;
-                    let complete = this.pending.complete;
-                    setTimeout(() => this.render(code, option, complete));
-                    this.pending = null;
-                }
-            };
-            this.worker.postMessage(<RenderCommand>{
-                code: code,
-                options: option,
-                renderType: 'preview'
-            });
+                    complete(e.data as RenderResult);
+                    this.state = "ready";
+                    if (this.pending)
+                    {
+                        let code = this.pending.code;
+                        let option = this.pending.option;
+                        let complete = this.pending.complete;
+                        setTimeout(() => this.render(code, option, complete));
+                        this.pending = null;
+                    }
+                };
+                this.worker.postMessage(<RenderCommand>{
+                    code: code,
+                    options: option,
+                    renderType: 'preview'
+                });
+            }
+            catch (ex)
+            {
+                console.error(ex.message);
+                this.state = "ready";
+            }
         }, 500) as any;
     }
 }
