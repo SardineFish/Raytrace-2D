@@ -1,48 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<meta http-equiv="X-UA-Compatible" content="ie=edge">
-		<title>SDF</title>
-		<link rel="stylesheet" href="css/style.css">
-		<link rel="stylesheet" href="res/font/Open_Sans/OpenSans.css">
-	</head>
-	<body>
-		<div id="hover">
-			<div id="mouse-pos">(0,0)</div>
-			<div id="sdf-value">0</div>
-			<div id="fps">0</div>
-		</div>
-		<div id="root">
-            <header id="top">
-               <p id="title">Raytrace 2D</p>
-                
-            </header>
-		    <main id="main">
-		        <section id="workspace">
-		            <div id="preview">
-			            <canvas id="canvas" width="800" height="480"></canvas>
-		            </div>
-		            <div id="controller">
-                        
-		                <div class="button" id="button-render">Render</div>
-		                <div class="button" id="button-abort">Abort</div>
-		                <div class="progress-bar show" id="render-progress">
-                            <div class="progress"></div>
-                        </div>
-                        <div id="time">
-                            <span>Spend: <span id="time-spend">--:--:--</span></span>
-                            <span>Estimate: <span id="time-est">--:--:--</span></span>
-                        </div>
-		            </div>
-                </section>
-		        <section id="editor">
-		            <div id="editor-wrapper"></div>
-		        </section>
-		    </main>
-		</div>
-		<script src="build/main.js" type="module"></script>
-	</body>
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<link href="favicon.png" rel="icon" type="image/png">
+	<title>Raytrace 2D</title>
+	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="res/font/Open_Sans/OpenSans.css">
+</head>
+
+<body>
+	<div id="hover">
+		<div id="mouse-pos">(0,0)</div>
+		<div id="sdf-value">0</div>
+		<div id="fps">0</div>
+	</div>
+	<div id="root">
+		<header id="top">
+			<p id="title">Raytrace 2D</p>
+
+		</header>
+		<main id="main">
+			<section id="workspace">
+				<div id="preview">
+					<canvas id="canvas" width="800" height="480"></canvas>
+				</div>
+				<div id="controller">
+
+					<div class="button" id="button-render">Render</div>
+					<div class="button" id="button-abort">Abort</div>
+					<div class="progress-bar show" id="render-progress">
+						<div class="progress"></div>
+					</div>
+					<div id="time">
+						<span>Spend: <span id="time-spend">--:--:--</span></span>
+						<span>Estimate: <span id="time-est">--:--:--</span></span>
+					</div>
+				</div>
+			</section>
+			<section id="editor">
+				<div id="editor-wrapper"></div>
+			</section>
+		</main>
+	</div>
+	<script src="build/main.js" type="module"></script>
+</body>
+
 </html>
